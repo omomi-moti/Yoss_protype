@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --color-yoss-yellow: #F5A623;
+  --color-yoss-yellow-light: #FFF8E7;
+  --color-yoss-yellow-dark: #D4891A;
+  --color-yoss-gray: #F7F7F7;
+  --color-yoss-dark: #333333;
+  --color-yoss-red: #E74C3C;
+  --color-yoss-green: #27AE60;
+  --color-yoss-blue: #3498DB;
+  --color-yoss-orange: #F39C12;
+  --font-sans: "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif;
+}
