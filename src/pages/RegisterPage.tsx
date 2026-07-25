@@ -1,19 +1,109 @@
-import { useState } from 'react';
-import { Check, ChevronDown, ChevronUp, Save, Info } from 'lucide-react';
-import { defaultResources } from '../data/mockData';
-import type { SupportResource } from '../types';
+import { useRef, useState } from 'react';
+import { Check, ChevronDown, ChevronUp, Save, Info, Plus, Trash2 } from 'lucide-react';
+import { organizations, ORGANIZATION_TYPES, SUPPORT_CATEGORIES } from '../data/organizations';
+import type { Organization, OrganizationSupport, SupportCategory } from '../types';
+
+// 自団体（ログイン中の団体という想定）
+const myOrganization = organizations.find(o => o.isMine) ?? organizations[0];
 
 export default function RegisterPage() {
-  const [resources, setResources] = useState<SupportResource[]>(defaultResources);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [profile, setProfile] = useState<Organization>(myOrganization);
+  // 編集中の支援は下書きに保持し、「保存」を押すまで profile には反映しない
+  const [drafts, setDrafts] = useState<Record<string, OrganizationSupport>>({});
+  // 一度も保存されていない新規追加分（キャンセルすると行ごと消える）
+  const [unsavedIds, setUnsavedIds] = useState<Set<string>>(new Set());
+  const [justSavedId, setJustSavedId] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const nextSupportId = useRef(0);
 
-  const categories = [...new Set(resources.map(r => r.category))];
+  // 学校に表示される対応領域は、保存済みの支援から導出される
+  const savedSupports = profile.supports.filter(s => s.enabled && !unsavedIds.has(s.id));
+  const activeCategories = [...new Set(savedSupports.map(s => s.category))];
+  const enabledTotal = savedSupports.length;
 
   const toggle = (id: string) => {
-    setResources(prev => prev.map(r =>
-      r.id === id ? { ...r, enabled: !r.enabled } : r
-    ));
+    setProfile(prev => ({
+      ...prev,
+      supports: prev.supports.map(s =>
+        s.id === id ? { ...s, enabled: !s.enabled } : s
+      ),
+    }));
+    setSaved(false);
+  };
+
+  const updateField = <K extends keyof Organization>(key: K, value: Organization[K]) => {
+    setProfile(prev => ({ ...prev, [key]: value }));
+    setSaved(false);
+  };
+
+  const startEdit = (support: OrganizationSupport) => {
+    setDrafts(prev => ({ ...prev, [support.id]: { ...support } }));
+    setJustSavedId(null);
+  };
+
+  const updateDraft = <K extends keyof OrganizationSupport>(
+    id: string,
+    key: K,
+    value: OrganizationSupport[K]
+  ) => {
+    setDrafts(prev => ({ ...prev, [id]: { ...prev[id], [key]: value } }));
+  };
+
+  const discardDraft = (id: string) => {
+    setDrafts(prev => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  };
+
+  const saveDraft = (id: string) => {
+    const draft = drafts[id];
+    if (!draft) return;
+
+    setProfile(prev => ({
+      ...prev,
+      supports: prev.supports.map(s => (s.id === id ? draft : s)),
+    }));
+    setUnsavedIds(prev => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+    discardDraft(id);
+    setJustSavedId(id);
+    setTimeout(() => setJustSavedId(current => (current === id ? null : current)), 2000);
+    setSaved(false);
+  };
+
+  const cancelEdit = (id: string) => {
+    // 一度も保存していない新規追加は、キャンセルで行ごと取り消す
+    if (unsavedIds.has(id)) {
+      removeSupport(id);
+      return;
+    }
+    discardDraft(id);
+  };
+
+  const addSupport = (category: SupportCategory) => {
+    const id = `s-new-${nextSupportId.current++}`;
+    const support: OrganizationSupport = {
+      id, name: '', category, description: '', targetGrades: '', cost: '', capacity: '', enabled: true,
+    };
+    setProfile(prev => ({ ...prev, supports: [...prev.supports, support] }));
+    setDrafts(prev => ({ ...prev, [id]: { ...support } }));
+    setUnsavedIds(prev => new Set(prev).add(id));
+    setSaved(false);
+  };
+
+  const removeSupport = (id: string) => {
+    setProfile(prev => ({ ...prev, supports: prev.supports.filter(s => s.id !== id) }));
+    setUnsavedIds(prev => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+    discardDraft(id);
     setSaved(false);
   };
 
@@ -27,12 +117,12 @@ export default function RegisterPage() {
       {/* Page header */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-600">自治体向け</span>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-600">支援団体向け</span>
           <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-yoss-yellow-light text-yoss-yellow-dark">軸①</span>
         </div>
-        <h1 className="text-xl font-bold text-yoss-dark">対応可能な支援の登録</h1>
+        <h1 className="text-xl font-bold text-yoss-dark">支援団体の登録</h1>
         <p className="text-sm text-gray-500 mt-1">
-          御自治体で対応可能な支援を選択してください。ここで登録された情報が、管内の学校の校内チーム会議で支援候補として表示されます。
+          団体の基本情報と、対応可能な支援を登録してください。ここで登録された情報が、地域の学校の校内チーム会議で支援候補として表示されます。
         </p>
       </div>
 
@@ -46,83 +136,298 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* Category sections */}
+      {/* 団体プロフィール */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-4">
+        <div className="px-5 py-3 bg-gray-50 border-b border-gray-100">
+          <h2 className="font-bold text-sm text-yoss-dark">団体の基本情報</h2>
+        </div>
+        <div className="p-5 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[10px] text-gray-400 font-bold">団体名</label>
+              <input
+                type="text"
+                value={profile.name}
+                onChange={e => updateField('name', e.target.value)}
+                className="w-full mt-0.5 px-3 py-1.5 text-xs border border-gray-200 rounded-md focus:outline-none focus:border-yoss-yellow focus:ring-1 focus:ring-yoss-yellow/20"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-gray-400 font-bold">運営主体</label>
+              <input
+                type="text"
+                value={profile.operator}
+                onChange={e => updateField('operator', e.target.value)}
+                className="w-full mt-0.5 px-3 py-1.5 text-xs border border-gray-200 rounded-md focus:outline-none focus:border-yoss-yellow focus:ring-1 focus:ring-yoss-yellow/20"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-gray-400 font-bold">種別</label>
+              <select
+                value={profile.type}
+                onChange={e => updateField('type', e.target.value as Organization['type'])}
+                className="w-full mt-0.5 px-3 py-1.5 text-xs border border-gray-200 rounded-md bg-white focus:outline-none focus:border-yoss-yellow focus:ring-1 focus:ring-yoss-yellow/20"
+              >
+                {ORGANIZATION_TYPES.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] text-gray-400 font-bold">所在地域</label>
+              <div className="flex gap-2 mt-0.5">
+                <input
+                  type="text"
+                  value={profile.area.prefecture}
+                  onChange={e => updateField('area', { ...profile.area, prefecture: e.target.value })}
+                  className="w-24 px-3 py-1.5 text-xs border border-gray-200 rounded-md focus:outline-none focus:border-yoss-yellow focus:ring-1 focus:ring-yoss-yellow/20"
+                />
+                <input
+                  type="text"
+                  value={profile.area.city}
+                  onChange={e => updateField('area', { ...profile.area, city: e.target.value })}
+                  className="flex-1 px-3 py-1.5 text-xs border border-gray-200 rounded-md focus:outline-none focus:border-yoss-yellow focus:ring-1 focus:ring-yoss-yellow/20"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 紹介文 */}
+          <div>
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] text-gray-400 font-bold">紹介文</label>
+              <span className={`text-[10px] ${profile.description.length > 200 ? 'text-red-400 font-bold' : 'text-gray-400'}`}>
+                {profile.description.length} / 200
+              </span>
+            </div>
+            <textarea
+              value={profile.description}
+              onChange={e => updateField('description', e.target.value)}
+              rows={4}
+              className="w-full mt-0.5 px-3 py-2 text-xs leading-relaxed border border-gray-200 rounded-md resize-none focus:outline-none focus:border-yoss-yellow focus:ring-1 focus:ring-yoss-yellow/20"
+            />
+            <p className="text-[10px] text-gray-400 mt-1">
+              申込方法・所要期間・学校推薦の要否など、学校が問い合わせる前に知りたいことを書くと繋がりやすくなります。
+            </p>
+          </div>
+
+          {/* 連絡先 */}
+          <div>
+            <label className="text-[10px] text-gray-400 font-bold">連絡先</label>
+            <div className="grid grid-cols-3 gap-3 mt-0.5">
+              {([
+                { key: 'tel', label: '電話' },
+                { key: 'email', label: 'メール' },
+                { key: 'web', label: 'Web' },
+              ] as const).map(field => (
+                <input
+                  key={field.key}
+                  type="text"
+                  value={profile.contact[field.key] ?? ''}
+                  placeholder={field.label}
+                  onChange={e => updateField('contact', { ...profile.contact, [field.key]: e.target.value })}
+                  className="w-full px-3 py-1.5 text-xs border border-gray-200 rounded-md focus:outline-none focus:border-yoss-yellow focus:ring-1 focus:ring-yoss-yellow/20"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 学校に表示される対応領域（登録内容から導出） */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
+        <h2 className="font-bold text-sm text-yoss-dark mb-1">学校に表示される対応領域</h2>
+        <p className="text-[10px] text-gray-400 mb-3">
+          YOSSの8領域のうち、支援を登録した領域が対応領域として学校に表示されます。
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {SUPPORT_CATEGORIES.map(category => {
+            const isActive = activeCategories.includes(category);
+            return (
+              <span
+                key={category}
+                className={`text-[10px] px-2.5 py-1 rounded-md border ${
+                  isActive
+                    ? 'bg-yoss-yellow text-white border-yoss-yellow font-bold'
+                    : 'bg-white text-gray-300 border-gray-200 border-dashed'
+                }`}
+              >
+                {category}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 対応可能な支援（8領域すべてを表示） */}
       <div className="space-y-4">
-        {categories.map(category => {
-          const categoryResources = resources.filter(r => r.category === category);
-          const enabledCount = categoryResources.filter(r => r.enabled).length;
+        {SUPPORT_CATEGORIES.map(category => {
+          const categorySupports = profile.supports.filter(s => s.category === category);
+          // 件数は保存済みのものだけ数える
+          const savedCount = categorySupports.filter(s => !unsavedIds.has(s.id)).length;
+          const enabledCount = categorySupports.filter(s => s.enabled && !unsavedIds.has(s.id)).length;
 
           return (
             <div key={category} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               {/* Category header */}
               <div className="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-100">
-                <h2 className="font-bold text-sm text-yoss-dark">{category}</h2>
+                <h2 className={`font-bold text-sm ${enabledCount > 0 ? 'text-yoss-dark' : 'text-gray-400'}`}>
+                  {category}
+                </h2>
                 <span className="text-[10px] text-gray-400">
-                  {enabledCount} / {categoryResources.length} 件 対応可能
+                  {savedCount === 0
+                    ? '未登録'
+                    : `${enabledCount} / ${savedCount} 件 対応可能`}
                 </span>
               </div>
 
-              {/* Resource list */}
+              {/* Support list */}
               <div className="divide-y divide-gray-50">
-                {categoryResources.map(resource => (
-                  <div key={resource.id}>
+                {categorySupports.map(support => {
+                  const draft = drafts[support.id];
+                  const isEditing = draft !== undefined;
+                  const isUnsaved = unsavedIds.has(support.id);
+
+                  return (
+                  <div key={support.id} className={isEditing ? 'bg-yoss-yellow-light/30' : undefined}>
                     {/* Toggle row */}
                     <div className="flex items-center gap-3 px-5 py-3 hover:bg-gray-50/50 transition-colors">
                       {/* Checkbox */}
                       <button
-                        onClick={() => toggle(resource.id)}
+                        onClick={() => toggle(support.id)}
                         className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-                          resource.enabled
+                          support.enabled
                             ? 'bg-yoss-yellow border-yoss-yellow'
                             : 'border-gray-300 hover:border-gray-400'
                         }`}
                       >
-                        {resource.enabled && <Check size={12} className="text-white" strokeWidth={3} />}
+                        {support.enabled && <Check size={12} className="text-white" strokeWidth={3} />}
                       </button>
 
-                      {/* Name & description */}
-                      <div className="flex-1 min-w-0">
-                        <span className={`text-sm font-medium ${resource.enabled ? 'text-yoss-dark' : 'text-gray-400'}`}>
-                          {resource.name}
+                      {/* Name & description — 保存済みの内容だけを表示する */}
+                      <button
+                        onClick={() => support.enabled && (isEditing ? cancelEdit(support.id) : startEdit(support))}
+                        disabled={!support.enabled}
+                        className="flex-1 min-w-0 flex items-center gap-2 text-left disabled:cursor-default"
+                      >
+                        <span className={`text-sm font-medium ${support.enabled ? 'text-yoss-dark' : 'text-gray-400'}`}>
+                          {support.name || <span className="text-gray-400">新しい支援</span>}
                         </span>
-                        <span className="text-xs text-gray-400 ml-2">{resource.description}</span>
-                      </div>
+                        {isUnsaved && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-orange-50 text-orange-500 shrink-0">
+                            未保存
+                          </span>
+                        )}
+                        {justSavedId === support.id && (
+                          <span className="flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded bg-green-50 text-yoss-green shrink-0">
+                            <Check size={9} strokeWidth={3} />
+                            保存しました
+                          </span>
+                        )}
+                        <span className="text-xs text-gray-400 truncate">{support.description}</span>
+                      </button>
 
                       {/* Expand button */}
-                      {resource.enabled && (
+                      {support.enabled && (
                         <button
-                          onClick={() => setExpandedId(expandedId === resource.id ? null : resource.id)}
-                          className="text-gray-400 hover:text-gray-600 p-1"
+                          onClick={() => (isEditing ? cancelEdit(support.id) : startEdit(support))}
+                          className="text-gray-400 hover:text-gray-600 p-1 shrink-0"
                         >
-                          {expandedId === resource.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                          {isEditing ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                         </button>
                       )}
                     </div>
 
-                    {/* Expanded details */}
-                    {expandedId === resource.id && resource.enabled && (
+                    {/* Edit form — 入力は下書きに保持し、保存を押すまで上の行には反映しない */}
+                    {isEditing && support.enabled && (
                       <div className="px-5 pb-4 pt-1 ml-8">
-                        <div className="grid grid-cols-2 gap-3">
-                          {[
-                            { label: '対象学年', value: resource.targetGrades },
-                            { label: '費用', value: resource.cost },
-                            { label: '定員・受入枠', value: resource.capacity },
-                            { label: '窓口・連絡先', value: resource.contact },
-                          ].map(field => (
-                            <div key={field.label}>
+                        <div className="grid grid-cols-2 gap-3 mb-3">
+                          <div>
+                            <label className="text-[10px] text-gray-400 font-bold">支援の名称</label>
+                            <input
+                              type="text"
+                              value={draft.name}
+                              placeholder="例）学習支援教室"
+                              onChange={e => updateDraft(support.id, 'name', e.target.value)}
+                              className="w-full mt-0.5 px-3 py-1.5 text-xs border border-gray-200 rounded-md bg-white focus:outline-none focus:border-yoss-yellow focus:ring-1 focus:ring-yoss-yellow/20"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-gray-400 font-bold">支援の内容</label>
+                            <input
+                              type="text"
+                              value={draft.description}
+                              placeholder="例）大学生ボランティアによる学習支援"
+                              onChange={e => updateDraft(support.id, 'description', e.target.value)}
+                              className="w-full mt-0.5 px-3 py-1.5 text-xs border border-gray-200 rounded-md bg-white focus:outline-none focus:border-yoss-yellow focus:ring-1 focus:ring-yoss-yellow/20"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                          {([
+                            { key: 'targetGrades', label: '対象学年' },
+                            { key: 'cost', label: '費用' },
+                            { key: 'capacity', label: '定員・受入枠' },
+                          ] as const).map(field => (
+                            <div key={field.key}>
                               <label className="text-[10px] text-gray-400 font-bold">{field.label}</label>
                               <input
                                 type="text"
-                                defaultValue={field.value}
-                                className="w-full mt-0.5 px-3 py-1.5 text-xs border border-gray-200 rounded-md focus:outline-none focus:border-yoss-yellow focus:ring-1 focus:ring-yoss-yellow/20"
+                                value={draft[field.key]}
+                                onChange={e => updateDraft(support.id, field.key, e.target.value)}
+                                className="w-full mt-0.5 px-3 py-1.5 text-xs border border-gray-200 rounded-md bg-white focus:outline-none focus:border-yoss-yellow focus:ring-1 focus:ring-yoss-yellow/20"
                               />
                             </div>
                           ))}
                         </div>
+
+                        {/* 項目ごとの保存 */}
+                        <div className="flex items-center gap-2 mt-3">
+                          <button
+                            onClick={() => saveDraft(support.id)}
+                            disabled={draft.name.trim() === ''}
+                            className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-md bg-yoss-yellow text-white hover:bg-yoss-yellow-dark transition-colors disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
+                          >
+                            <Check size={13} strokeWidth={3} />
+                            {isUnsaved ? 'この支援を追加' : '変更を保存'}
+                          </button>
+                          <button
+                            onClick={() => cancelEdit(support.id)}
+                            className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1.5"
+                          >
+                            キャンセル
+                          </button>
+                          {draft.name.trim() === '' && (
+                            <span className="text-[10px] text-gray-400">支援の名称を入力すると保存できます</span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
+                          <p className="text-[10px] text-gray-400">
+                            連絡先は団体の基本情報で登録したものが表示されます
+                          </p>
+                          <button
+                            onClick={() => removeSupport(support.id)}
+                            className="flex items-center gap-1 text-[10px] text-red-400 hover:text-red-500"
+                          >
+                            <Trash2 size={11} />
+                            この支援を削除
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
-                ))}
+                  );
+                })}
+
+                {/* Add support */}
+                <button
+                  onClick={() => addSupport(category)}
+                  className="w-full flex items-center gap-2 px-5 py-2.5 text-xs text-gray-400 hover:text-yoss-yellow-dark hover:bg-yoss-yellow-light/40 transition-colors"
+                >
+                  <Plus size={14} />
+                  {category}の支援を追加
+                </button>
               </div>
             </div>
           );
@@ -147,12 +452,12 @@ export default function RegisterPage() {
           ) : (
             <>
               <Save size={18} />
-              対応可能な支援を登録する
+              団体情報と対応可能な支援を登録する
             </>
           )}
         </button>
         <p className="text-center text-[10px] text-gray-400 mt-2">
-          登録された内容は、管内 {5} 校の校内チーム会議画面に反映されます
+          {enabledTotal} 件の支援が、{profile.area.city} の学校の校内チーム会議画面に反映されます
         </p>
       </div>
     </div>

@@ -1,9 +1,13 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { Building2, BarChart3, Users, Home } from 'lucide-react';
+import { organizations } from '../data/organizations';
+
+// ログイン中の団体という想定
+const myOrganization = organizations.find(o => o.isMine) ?? organizations[0];
 
 const navItems = [
   { to: '/', label: 'トップ', icon: Home },
-  { to: '/register', label: '支援登録', icon: Building2, badge: '自治体' },
+  { to: '/register', label: '支援登録', icon: Building2, badge: '支援団体' },
   { to: '/dashboard', label: 'サポート一覧', icon: BarChart3, badge: '共通' },
   { to: '/meeting', label: '校内チーム会議', icon: Users, badge: '学校' },
 ];
@@ -28,7 +32,7 @@ export default function Layout() {
           </span>
         </div>
         <div className="text-xs text-gray-400">
-          ○○市教育委員会 — 2026年度
+          {myOrganization.name} — 2026年度
         </div>
       </header>
 
@@ -55,7 +59,7 @@ export default function Layout() {
               <span>{item.label}</span>
               {item.badge && (
                 <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded ${
-                  item.badge === '自治体' ? 'bg-blue-50 text-blue-500' : item.badge === '共通' ? 'bg-purple-50 text-purple-500' : 'bg-green-50 text-green-600'
+                  item.badge === '支援団体' ? 'bg-blue-50 text-blue-500' : item.badge === '共通' ? 'bg-purple-50 text-purple-500' : 'bg-green-50 text-green-600'
                 }`}>
                   {item.badge}
                 </span>

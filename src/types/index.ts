@@ -28,8 +28,30 @@ export type ProblemTag =
   | '孤立・居場所なし'
   | '地域からの気になる情報';
 
-// 自治体が登録する支援リソース
-export interface SupportResource {
+// 支援団体の種別
+export type OrganizationType =
+  | 'NPO'
+  | '社会福祉協議会'
+  | '自治体事業'
+  | 'ボランティア団体'
+  | '民間企業'
+  | 'その他';
+
+// 団体の所在地域
+export interface OrganizationArea {
+  prefecture: string;
+  city: string;
+}
+
+// 団体の連絡先
+export interface OrganizationContact {
+  tel?: string;
+  email?: string;
+  web?: string;
+}
+
+// 団体が提供する個別の支援メニュー
+export interface OrganizationSupport {
   id: string;
   name: string;
   category: SupportCategory;
@@ -37,15 +59,49 @@ export interface SupportResource {
   targetGrades: string;
   cost: string;
   capacity: string;
-  contact: string;
   enabled: boolean;
+}
+
+// 学校からのレビュー
+export interface SchoolReview {
+  schoolName: string;
+  supportUsed: string;
+  rating: number; // 1-5
+  comment: string;
+  date: string;
+  problemTags: ProblemTag[];
+}
+
+// 登録の単位＝地域の支援団体・組織
+export interface Organization {
+  id: string;
+  name: string;
+  operator: string;
+  type: OrganizationType;
+  area: OrganizationArea;
+  description: string; // 200文字以内
+  contact: OrganizationContact;
+  categories: SupportCategory[];
+  supports: OrganizationSupport[];
+  reviews: SchoolReview[];
+  isMine: boolean;
+}
+
+// 支援メニューに提供元団体の情報を付与したもの（横断検索用）
+export interface SupportWithOrg extends OrganizationSupport {
+  organizationId: string;
+  organizationName: string;
+  organizationType: OrganizationType;
+  contact: OrganizationContact;
 }
 
 // 支援実績（ダミーデータ用）
 export interface SupportRecord {
   id: string;
-  resourceId: string;
-  resourceName: string;
+  supportId: string;
+  supportName: string;
+  organizationId: string;
+  organizationName: string;
   category: SupportCategory;
   problemTags: ProblemTag[];
   schoolName: string;
@@ -61,14 +117,18 @@ export interface DashboardStats {
   continuationRate: number;
   improvementRate: number;
   byProblem: { tag: ProblemTag; count: number }[];
-  byResource: { name: string; count: number; continuationRate: number; improvementRate: number }[];
+  bySupport: { name: string; organizationName: string; count: number; continuationRate: number; improvementRate: number }[];
   monthlyTrend: { month: string; count: number }[];
 }
 
 // 校内チーム会議で表示する支援候補
 export interface SupportSuggestion {
-  resourceName: string;
+  supportId: string;
+  supportName: string;
   category: SupportCategory;
+  organizationName: string;
+  organizationType: OrganizationType;
+  contact: OrganizationContact;
   cityWideCount: number;
   schoolCount: number;
   continuationRate: number | null;
