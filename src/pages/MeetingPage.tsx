@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import { MapPin, TrendingUp, AlertCircle, ChevronDown, ChevronUp, Sparkles, ExternalLink } from 'lucide-react';
-import { getSuggestions, defaultResources, mockRecords } from '../data/mockData';
+import { MapPin, TrendingUp, AlertCircle, ChevronDown, ChevronUp, Sparkles, Phone, Mail, Globe } from 'lucide-react';
+import { getSuggestions, mockRecords } from '../data/mockData';
+import { getAllSupports } from '../data/organizations';
 import type { ProblemTag } from '../types';
+
+const allSupports = getAllSupports();
 
 // デモ用の児童データ
 const demoStudents = [
@@ -40,7 +43,7 @@ export default function MeetingPage() {
 
   const suggestions = getSuggestions(
     selectedStudent.problems,
-    defaultResources,
+    allSupports,
     mockRecords,
     '○○小学校'
   );
@@ -54,7 +57,7 @@ export default function MeetingPage() {
         </div>
         <h1 className="text-xl font-bold text-yoss-dark">校内チーム会議 — 支援候補表示</h1>
         <p className="text-sm text-gray-500 mt-1">
-          スクリーニング結果と自治体の登録データから、この児童に合った支援候補を自動表示します。
+          スクリーニング結果と支援団体の登録データから、この児童に合った支援候補を自動表示します。
           <strong className="text-yoss-dark">先生の追加入力は一切ありません。</strong>
         </p>
       </div>
@@ -147,7 +150,7 @@ export default function MeetingPage() {
             <div className="space-y-2">
               {suggestions.map(suggestion => (
                 <div
-                  key={suggestion.resourceName}
+                  key={suggestion.supportId}
                   className={`bg-white rounded-xl border transition-all ${
                     suggestion.isNew
                       ? 'border-dashed border-blue-200'
@@ -156,13 +159,13 @@ export default function MeetingPage() {
                 >
                   <button
                     onClick={() => setExpandedResource(
-                      expandedResource === suggestion.resourceName ? null : suggestion.resourceName
+                      expandedResource === suggestion.supportId ? null : suggestion.supportId
                     )}
                     className="w-full text-left px-4 py-3"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold ${
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 ${
                           suggestion.isNew
                             ? 'bg-blue-50 text-blue-500'
                             : 'bg-yoss-yellow-light text-yoss-yellow-dark'
@@ -170,14 +173,19 @@ export default function MeetingPage() {
                           {suggestion.category.charAt(0)}
                         </div>
                         <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-yoss-dark">{suggestion.resourceName}</span>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-bold text-yoss-dark">{suggestion.supportName}</span>
                             {suggestion.isNew && (
                               <span className="text-[9px] bg-blue-50 text-blue-500 px-1.5 py-0.5 rounded font-bold">
                                 新設・実績なし
                               </span>
                             )}
                           </div>
+                          {/* 実施団体 */}
+                          <p className="text-[10px] text-gray-500 mt-0.5">
+                            {suggestion.organizationName}
+                            <span className="text-gray-400 ml-1.5">{suggestion.organizationType}</span>
+                          </p>
                           <div className="flex items-center gap-3 mt-0.5 text-[10px] text-gray-400">
                             <span className="flex items-center gap-0.5">
                               <MapPin size={10} />
@@ -195,7 +203,7 @@ export default function MeetingPage() {
                           </div>
                         </div>
                       </div>
-                      {expandedResource === suggestion.resourceName
+                      {expandedResource === suggestion.supportId
                         ? <ChevronUp size={16} className="text-gray-400" />
                         : <ChevronDown size={16} className="text-gray-400" />
                       }
@@ -203,7 +211,7 @@ export default function MeetingPage() {
                   </button>
 
                   {/* Expanded details */}
-                  {expandedResource === suggestion.resourceName && (
+                  {expandedResource === suggestion.supportId && (
                     <div className="px-4 pb-4 border-t border-gray-50 pt-3 ml-11">
                       <p className="text-xs text-gray-500 mb-2">{suggestion.details}</p>
 
@@ -231,15 +239,28 @@ export default function MeetingPage() {
                         <div className="flex items-start gap-2 bg-blue-50 rounded-lg p-3 mb-3">
                           <AlertCircle size={14} className="text-blue-500 mt-0.5 shrink-0" />
                           <p className="text-[10px] text-blue-700">
-                            この支援は自治体が「対応可能」として新しく登録したものです。まだ利用実績はありませんが、対応可能な状態です。
+                            この支援は{suggestion.organizationName}が「対応可能」として新しく登録したものです。まだ利用実績はありませんが、対応可能な状態です。
                           </p>
                         </div>
                       )}
 
-                      <button className="flex items-center gap-1 text-xs text-yoss-yellow-dark hover:text-yoss-yellow font-bold transition-colors">
-                        <ExternalLink size={12} />
-                        詳細・連絡先を見る
-                      </button>
+                      {/* 連絡先 */}
+                      <div className="border-t border-gray-50 pt-3">
+                        <p className="text-[10px] font-bold text-gray-400 mb-1.5">
+                          {suggestion.organizationName} の連絡先
+                        </p>
+                        <div className="flex flex-wrap gap-3 text-[10px] text-gray-600">
+                          {suggestion.contact.tel && (
+                            <span className="flex items-center gap-1"><Phone size={11} />{suggestion.contact.tel}</span>
+                          )}
+                          {suggestion.contact.email && (
+                            <span className="flex items-center gap-1"><Mail size={11} />{suggestion.contact.email}</span>
+                          )}
+                          {suggestion.contact.web && (
+                            <span className="flex items-center gap-1"><Globe size={11} />{suggestion.contact.web}</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -251,7 +272,7 @@ export default function MeetingPage() {
           <div className="bg-green-50 border border-green-100 rounded-lg p-3">
             <p className="text-[10px] text-green-700 leading-relaxed">
               <strong>この画面は自動生成されています。</strong>
-              自治体が登録した支援情報と、管内の学校の支援記録から、この児童のスクリーニング結果に合った支援候補を表示しています。先生の追加入力は一切ありません。
+              地域の支援団体が登録した支援情報と、学校の支援記録から、この児童のスクリーニング結果に合った支援候補を表示しています。先生の追加入力は一切ありません。
             </p>
           </div>
         </div>

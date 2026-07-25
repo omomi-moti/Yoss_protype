@@ -1,4 +1,16 @@
-import type { Organization, OrganizationType, SupportWithOrg } from '../types';
+import type { Organization, OrganizationType, SupportCategory, SupportWithOrg } from '../types';
+
+// 画面Cのフィルタ用（YOSS 8領域の表示順）
+export const SUPPORT_CATEGORIES: SupportCategory[] = [
+  '学校適応',
+  '学習',
+  '家庭状況',
+  '発達',
+  '健康',
+  '経済',
+  '福祉',
+  '地域情報',
+];
 
 // 画面Cのフィルタ用（種別の表示順）
 export const ORGANIZATION_TYPES: OrganizationType[] = [

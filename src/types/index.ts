@@ -95,24 +95,13 @@ export interface SupportWithOrg extends OrganizationSupport {
   contact: OrganizationContact;
 }
 
-// 自治体が登録する支援リソース
-export interface SupportResource {
-  id: string;
-  name: string;
-  category: SupportCategory;
-  description: string;
-  targetGrades: string;
-  cost: string;
-  capacity: string;
-  contact: string;
-  enabled: boolean;
-}
-
 // 支援実績（ダミーデータ用）
 export interface SupportRecord {
   id: string;
-  resourceId: string;
-  resourceName: string;
+  supportId: string;
+  supportName: string;
+  organizationId: string;
+  organizationName: string;
   category: SupportCategory;
   problemTags: ProblemTag[];
   schoolName: string;
@@ -128,14 +117,18 @@ export interface DashboardStats {
   continuationRate: number;
   improvementRate: number;
   byProblem: { tag: ProblemTag; count: number }[];
-  byResource: { name: string; count: number; continuationRate: number; improvementRate: number }[];
+  bySupport: { name: string; organizationName: string; count: number; continuationRate: number; improvementRate: number }[];
   monthlyTrend: { month: string; count: number }[];
 }
 
 // 校内チーム会議で表示する支援候補
 export interface SupportSuggestion {
-  resourceName: string;
+  supportId: string;
+  supportName: string;
   category: SupportCategory;
+  organizationName: string;
+  organizationType: OrganizationType;
+  contact: OrganizationContact;
   cityWideCount: number;
   schoolCount: number;
   continuationRate: number | null;

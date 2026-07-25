@@ -7,10 +7,10 @@ export default function TopPage() {
   const cards = [
     {
       icon: Building2,
-      badge: '自治体向け',
+      badge: '支援団体向け',
       badgeColor: 'bg-blue-50 text-blue-600',
       title: '軸①：支援の登録',
-      description: '自治体が対応可能な支援を簡単に登録。年1回・5分のチェック入力で、地域の支援リソースがYOSSに反映されます。',
+      description: '子ども食堂・NPO・社協などの支援団体が、対応可能な支援を簡単に登録。年1回・5分のチェック入力で、地域の支援リソースがYOSSに反映されます。',
       to: '/register',
       color: 'border-blue-200 hover:border-blue-400',
     },
@@ -18,8 +18,8 @@ export default function TopPage() {
       icon: BarChart3,
       badge: '共通画面',
       badgeColor: 'bg-purple-50 text-purple-600',
-      title: '自治体サポートディレクトリ',
-      description: '各自治体が「何ができるか」をカードで一覧表示。学校からの実際のレビュー付き。タグで絞り込んで、近くの自治体の取り組みも確認できます。',
+      title: '支援団体ディレクトリ',
+      description: '地域の支援団体が「何ができるか」をカードで一覧表示。学校からの実際のレビュー付き。対応領域や団体の種別で絞り込めます。',
       to: '/dashboard',
       color: 'border-purple-200 hover:border-purple-400',
     },
@@ -45,7 +45,7 @@ export default function TopPage() {
           </h1>
         </div>
         <p className="text-lg text-gray-500 ml-3">
-          「マップ」から「自治体連携」へ
+          「マップ」から「支援団体連携」へ
         </p>
       </div>
 
@@ -54,9 +54,9 @@ export default function TopPage() {
         <p className="text-yoss-dark leading-relaxed">
           YOSSの支援分類 <strong>B（地域資源の活用）</strong>だけが、システムの外に抜け落ちています。
           <br />
-          原因はUIではなく、<strong>自治体がシステムの外側にいる</strong>こと。
+          原因はUIではなく、<strong>地域の支援団体がシステムの外側にいる</strong>こと。
           <br /><br />
-          本プロトタイプは、自治体を「外部」ではなく
+          本プロトタイプは、地域の支援団体を「外部」ではなく
           <strong>「一緒にやるプレイヤー」</strong>
           としてYOSSに取り込み、学校の負担を一切増やさずに支援サイクルを完結させる提案です。
         </p>
@@ -95,7 +95,7 @@ export default function TopPage() {
         <div className="flex items-center justify-center gap-4 text-sm">
           <div className="text-center">
             <div className="w-28 h-16 bg-blue-50 border-2 border-blue-200 rounded-lg flex items-center justify-center font-bold text-blue-700">
-              自治体
+              支援団体
             </div>
             <p className="text-[10px] text-gray-400 mt-1">支援を登録</p>
           </div>
@@ -121,7 +121,7 @@ export default function TopPage() {
           </div>
         </div>
         <p className="text-center text-[10px] text-gray-400 mt-3">
-          学校の入力は増えない — 自治体が登録したデータが、校内チーム会議画面に自動表示される
+          学校の入力は増えない — 支援団体が登録したデータが、校内チーム会議画面に自動表示される
         </p>
       </div>
     </div>
