@@ -3,6 +3,7 @@ import { MapPin, TrendingUp, AlertCircle, ChevronDown, ChevronUp, Sparkles, Phon
 import { getSuggestions, mockRecords } from '../data/mockData';
 import { getAllSupports } from '../data/organizations';
 import { useOrganizationStore } from '../hooks/useOrganizationStore';
+import DomainScoreBreakdown from '../components/DomainScoreBreakdown';
 import { scoreLevel, scoredDomains, studentsByScore, totalScore } from '../data/students';
 
 // スコアの水準ごとのバッジ配色
@@ -99,9 +100,15 @@ export default function MeetingPage() {
                 合計 {totalScore(selectedStudent.scores)}pt
               </div>
             </div>
+            {/* 8領域別スコア */}
+            <div className="mb-3">
+              <p className="text-[10px] font-bold text-gray-400 mb-1.5">8領域別スコア</p>
+              <DomainScoreBreakdown scores={selectedStudent.scores} />
+            </div>
+
             <div className="flex items-center gap-2 flex-wrap">
               {selectedStudent.problems.map(p => (
-                <span key={p} className="text-[10px] bg-yoss-yellow-light text-yoss-yellow-dark font-bold px-2 py-1 rounded-md">
+                <span key={p} className="text-[10px] bg-gray-100 text-gray-600 font-bold px-2 py-1 rounded-md">
                   {p}
                 </span>
               ))}
