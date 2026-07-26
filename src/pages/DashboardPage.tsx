@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Search, Filter, X } from 'lucide-react';
 import OrganizationCard from '../components/OrganizationCard';
-import { organizations, SUPPORT_CATEGORIES, ORGANIZATION_TYPES } from '../data/organizations';
+import { useOrganizationStore } from '../hooks/useOrganizationStore';
+import { SUPPORT_CATEGORIES, ORGANIZATION_TYPES } from '../data/organizations';
 import type { OrganizationType, SupportCategory } from '../types';
 
 export default function DashboardPage() {
+  const { published: organizations } = useOrganizationStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<SupportCategory[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<OrganizationType[]>([]);

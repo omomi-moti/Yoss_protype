@@ -1,10 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { MapPin, TrendingUp, AlertCircle, ChevronDown, ChevronUp, Sparkles, Phone, Mail, Globe } from 'lucide-react';
 import { getSuggestions, mockRecords } from '../data/mockData';
 import { getAllSupports } from '../data/organizations';
+import { useOrganizationStore } from '../hooks/useOrganizationStore';
 import type { ProblemTag } from '../types';
-
-const allSupports = getAllSupports();
 
 // デモ用の児童データ
 const demoStudents = [
@@ -38,8 +37,11 @@ const demoStudents = [
 ];
 
 export default function MeetingPage() {
+  const { published } = useOrganizationStore();
   const [selectedStudent, setSelectedStudent] = useState(demoStudents[0]);
   const [expandedResource, setExpandedResource] = useState<string | null>(null);
+
+  const allSupports = useMemo(() => getAllSupports(published), [published]);
 
   const suggestions = getSuggestions(
     selectedStudent.problems,
