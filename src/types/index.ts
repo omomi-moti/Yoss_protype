@@ -28,6 +28,18 @@ export type ProblemTag =
   | '孤立・居場所なし'
   | '地域からの気になる情報';
 
+// 校内チーム会議で検討する児童
+export interface Student {
+  id: string;
+  grade: string;
+  number: number;
+  score: number;
+  /** 表示専用。支援候補の抽出には使わない */
+  problems: ProblemTag[];
+  notes: string;
+  currentSupport: string;
+}
+
 // 支援団体の種別
 export type OrganizationType =
   | 'NPO'
