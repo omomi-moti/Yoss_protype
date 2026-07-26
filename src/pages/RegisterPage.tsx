@@ -1,20 +1,62 @@
-import { useRef, useState } from 'react';
-import { Check, ChevronDown, ChevronUp, Save, Info, Plus, Trash2 } from 'lucide-react';
-import { organizations, ORGANIZATION_TYPES, SUPPORT_CATEGORIES } from '../data/organizations';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Check, ChevronDown, ChevronUp, Eye, Info, Plus, Trash2, AlertCircle, RotateCcw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import PreviewModal from '../components/PreviewModal';
+import { ORGANIZATION_TYPES, SUPPORT_CATEGORIES, deriveCategories } from '../data/organizations';
+import { getPublishedMine, publishDraft, resetStore, saveDraft as persistDraft } from '../data/organizationStore';
+import { useOrganizationStore } from '../hooks/useOrganizationStore';
 import type { Organization, OrganizationSupport, SupportCategory } from '../types';
 
-// 自団体（ログイン中の団体という想定）
-const myOrganization = organizations.find(o => o.isMine) ?? organizations[0];
+function formatSavedAt(iso: string | null): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
 
 export default function RegisterPage() {
-  const [profile, setProfile] = useState<Organization>(myOrganization);
+  const navigate = useNavigate();
+  const store = useOrganizationStore();
+
+  const [profile, setProfile] = useState<Organization>(store.draft);
   // 編集中の支援は下書きに保持し、「保存」を押すまで profile には反映しない
   const [drafts, setDrafts] = useState<Record<string, OrganizationSupport>>({});
   // 一度も保存されていない新規追加分（キャンセルすると行ごと消える）
   const [unsavedIds, setUnsavedIds] = useState<Set<string>>(new Set());
   const [justSavedId, setJustSavedId] = useState<string | null>(null);
-  const [saved, setSaved] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [justPublished, setJustPublished] = useState(false);
   const nextSupportId = useRef(0);
+
+  // 未保存の支援を除いた、学校に出せる状態の団体情報
+  const publishableProfile = useMemo<Organization>(() => {
+    const supports = profile.supports.filter(s => !unsavedIds.has(s.id));
+    return { ...profile, supports, categories: deriveCategories(supports) };
+  }, [profile, unsavedIds]);
+
+  // 下書きは入力のたびに自動保存する（5〜10分かかるフォームなので取りこぼさない）
+  useEffect(() => {
+    const timer = setTimeout(() => persistDraft(publishableProfile), 500);
+    return () => clearTimeout(timer);
+  }, [publishableProfile]);
+
+  const publishedMine = getPublishedMine(store);
+  const hasUnpublished = JSON.stringify(publishedMine) !== JSON.stringify(publishableProfile);
+  const savedAtLabel = formatSavedAt(store.draftSavedAt);
+
+  const handlePublish = () => {
+    publishDraft();
+    setShowPreview(false);
+    setJustPublished(true);
+    setTimeout(() => setJustPublished(false), 8000);
+  };
+
+  const handleReset = () => {
+    resetStore();
+    setProfile(getPublishedMine());
+    setDrafts({});
+    setUnsavedIds(new Set());
+    setJustPublished(false);
+  };
 
   // 学校に表示される対応領域は、保存済みの支援から導出される
   const savedSupports = profile.supports.filter(s => s.enabled && !unsavedIds.has(s.id));
@@ -28,12 +70,10 @@ export default function RegisterPage() {
         s.id === id ? { ...s, enabled: !s.enabled } : s
       ),
     }));
-    setSaved(false);
   };
 
   const updateField = <K extends keyof Organization>(key: K, value: Organization[K]) => {
     setProfile(prev => ({ ...prev, [key]: value }));
-    setSaved(false);
   };
 
   const startEdit = (support: OrganizationSupport) => {
@@ -73,7 +113,6 @@ export default function RegisterPage() {
     discardDraft(id);
     setJustSavedId(id);
     setTimeout(() => setJustSavedId(current => (current === id ? null : current)), 2000);
-    setSaved(false);
   };
 
   const cancelEdit = (id: string) => {
@@ -93,7 +132,6 @@ export default function RegisterPage() {
     setProfile(prev => ({ ...prev, supports: [...prev.supports, support] }));
     setDrafts(prev => ({ ...prev, [id]: { ...support } }));
     setUnsavedIds(prev => new Set(prev).add(id));
-    setSaved(false);
   };
 
   const removeSupport = (id: string) => {
@@ -104,12 +142,6 @@ export default function RegisterPage() {
       return next;
     });
     discardDraft(id);
-    setSaved(false);
-  };
-
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
   };
 
   return (
@@ -127,12 +159,55 @@ export default function RegisterPage() {
       </div>
 
       {/* Info banner */}
-      <div className="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6">
+      <div className="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-lg p-4 mb-4">
         <Info size={16} className="text-blue-500 mt-0.5 shrink-0" />
         <div className="text-xs text-blue-700 leading-relaxed">
-          <strong>年1回・約5分の入力です。</strong>
-          チェックを入れた項目だけ、対象学年・費用・定員などの詳細を入力してください。
-          登録内容は次回更新まで学校に表示されます。
+          <strong>初回の登録は5〜10分、次回以降の更新は数分で完了します。</strong>
+          入力内容は自動的に下書き保存されるので、途中で閉じても失われません。
+          学校に表示されるのは、最後に「公開」した内容です。
+        </div>
+      </div>
+
+      {/* 公開状態 */}
+      <div className="flex items-center justify-between gap-4 bg-white border border-gray-200 rounded-lg px-4 py-2.5 mb-6">
+        <div className="flex items-center gap-2 min-w-0">
+          {justPublished ? (
+            <span className="flex items-center gap-1 text-xs font-bold text-yoss-green">
+              <Check size={14} strokeWidth={3} />
+              公開しました
+            </span>
+          ) : hasUnpublished ? (
+            <span className="flex items-center gap-1 text-xs font-bold text-orange-500">
+              <AlertCircle size={14} />
+              未公開の変更があります
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 text-xs font-bold text-gray-400">
+              <Check size={14} strokeWidth={3} />
+              最新の内容が公開されています
+            </span>
+          )}
+          {savedAtLabel && (
+            <span className="text-[10px] text-gray-400 truncate">下書き保存 {savedAtLabel}</span>
+          )}
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          {justPublished && (
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="text-[10px] font-bold text-yoss-yellow-dark hover:text-yoss-yellow"
+            >
+              ディレクトリで確認する
+            </button>
+          )}
+          <button
+            onClick={handleReset}
+            className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-gray-600"
+            title="下書きと公開内容を初期データに戻します"
+          >
+            <RotateCcw size={11} />
+            初期状態に戻す
+          </button>
         </div>
       </div>
 
@@ -434,32 +509,28 @@ export default function RegisterPage() {
         })}
       </div>
 
-      {/* Save button */}
+      {/* Publish */}
       <div className="sticky bottom-0 bg-gradient-to-t from-[#FAFAFA] via-[#FAFAFA] to-transparent pt-4 pb-2 mt-6">
         <button
-          onClick={handleSave}
-          className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
-            saved
-              ? 'bg-yoss-green text-white'
-              : 'bg-yoss-yellow text-white hover:bg-yoss-yellow-dark shadow-lg shadow-yoss-yellow/20'
-          }`}
+          onClick={() => setShowPreview(true)}
+          className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all bg-yoss-yellow text-white hover:bg-yoss-yellow-dark shadow-lg shadow-yoss-yellow/20"
         >
-          {saved ? (
-            <>
-              <Check size={18} />
-              登録しました
-            </>
-          ) : (
-            <>
-              <Save size={18} />
-              団体情報と対応可能な支援を登録する
-            </>
-          )}
+          <Eye size={18} />
+          学校からの見え方を確認する
         </button>
         <p className="text-center text-[10px] text-gray-400 mt-2">
           {enabledTotal} 件の支援が、{profile.area.city} の学校の校内チーム会議画面に反映されます
         </p>
       </div>
+
+      {showPreview && (
+        <PreviewModal
+          org={publishableProfile}
+          hasChanges={hasUnpublished}
+          onPublish={handlePublish}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
     </div>
   );
 }
