@@ -3,11 +3,18 @@ import { MapPin, TrendingUp, AlertCircle, ChevronDown, ChevronUp, Sparkles, Phon
 import { getSuggestions, mockRecords } from '../data/mockData';
 import { getAllSupports } from '../data/organizations';
 import { useOrganizationStore } from '../hooks/useOrganizationStore';
-import { demoStudents } from '../data/students';
+import { scoreLevel, scoredDomains, studentsByScore, totalScore } from '../data/students';
+
+// スコアの水準ごとのバッジ配色
+const SCORE_STYLES = {
+  high: 'bg-red-50 text-red-500',
+  middle: 'bg-yellow-50 text-yellow-600',
+  low: 'bg-gray-50 text-gray-500',
+} as const;
 
 export default function MeetingPage() {
   const { published } = useOrganizationStore();
-  const [selectedStudent, setSelectedStudent] = useState(demoStudents[0]);
+  const [selectedStudent, setSelectedStudent] = useState(studentsByScore[0]);
   const [expandedResource, setExpandedResource] = useState<string | null>(null);
 
   const allSupports = useMemo(() => getAllSupports(published), [published]);
@@ -41,7 +48,7 @@ export default function MeetingPage() {
               <h3 className="text-xs font-bold text-gray-500">検討対象児童</h3>
               <p className="text-[10px] text-gray-400">スクリーニング会議で挙がった児童</p>
             </div>
-            {demoStudents.map(student => (
+            {studentsByScore.map(student => (
               <button
                 key={student.id}
                 onClick={() => { setSelectedStudent(student); setExpandedResource(null); }}
@@ -53,13 +60,17 @@ export default function MeetingPage() {
               >
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-bold text-yoss-dark">{student.grade} {student.number}番</span>
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                    student.score >= 10 ? 'bg-red-50 text-red-500' :
-                    student.score >= 6 ? 'bg-yellow-50 text-yellow-600' :
-                    'bg-gray-50 text-gray-500'
-                  }`}>
-                    {student.score}pt
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${SCORE_STYLES[scoreLevel(totalScore(student.scores))]}`}>
+                    {totalScore(student.scores)}pt
                   </span>
+                </div>
+                {/* スコアが高い領域 */}
+                <div className="flex flex-wrap gap-1 mb-1">
+                  {scoredDomains(student.scores).slice(0, 2).map(domain => (
+                    <span key={domain} className="text-[9px] font-bold bg-yoss-yellow-light text-yoss-yellow-dark px-1.5 py-0.5 rounded">
+                      {domain} {student.scores[domain]}
+                    </span>
+                  ))}
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {student.problems.map(p => (
@@ -84,12 +95,8 @@ export default function MeetingPage() {
                 </h3>
                 <p className="text-xs text-gray-500 mt-0.5">{selectedStudent.notes}</p>
               </div>
-              <div className={`text-lg font-bold px-3 py-1 rounded-lg ${
-                selectedStudent.score >= 10 ? 'bg-red-50 text-red-500' :
-                selectedStudent.score >= 6 ? 'bg-yellow-50 text-yellow-600' :
-                'bg-gray-50 text-gray-500'
-              }`}>
-                合計 {selectedStudent.score}pt
+              <div className={`text-lg font-bold px-3 py-1 rounded-lg shrink-0 ${SCORE_STYLES[scoreLevel(totalScore(selectedStudent.scores))]}`}>
+                合計 {totalScore(selectedStudent.scores)}pt
               </div>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
