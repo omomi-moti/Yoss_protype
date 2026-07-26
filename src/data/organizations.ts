@@ -1,4 +1,4 @@
-import type { Organization, OrganizationType, SupportCategory, SupportWithOrg } from '../types';
+import type { Organization, OrganizationSupport, OrganizationType, SupportCategory, SupportWithOrg } from '../types';
 
 // 画面Cのフィルタ用（YOSS 8領域の表示順）
 export const SUPPORT_CATEGORIES: SupportCategory[] = [
@@ -228,9 +228,13 @@ const seeds: OrganizationSeed[] = [
 ];
 
 // 対応領域は「現在対応可能な支援」から導出する
+export function deriveCategories(supports: OrganizationSupport[]): SupportCategory[] {
+  return [...new Set(supports.filter(s => s.enabled).map(s => s.category))];
+}
+
 export const organizations: Organization[] = seeds.map(org => ({
   ...org,
-  categories: [...new Set(org.supports.filter(s => s.enabled).map(s => s.category))],
+  categories: deriveCategories(org.supports),
 }));
 
 // 画面D（校内チーム会議）向けに、支援メニューを団体横断でフラット化する

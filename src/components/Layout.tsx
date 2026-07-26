@@ -1,9 +1,6 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { Building2, BarChart3, Users, Home } from 'lucide-react';
-import { organizations } from '../data/organizations';
-
-// ログイン中の団体という想定
-const myOrganization = organizations.find(o => o.isMine) ?? organizations[0];
+import { useOrganizationStore } from '../hooks/useOrganizationStore';
 
 const navItems = [
   { to: '/', label: 'トップ', icon: Home },
@@ -13,6 +10,9 @@ const navItems = [
 ];
 
 export default function Layout() {
+  // ログイン中の団体という想定
+  const { draft: myOrganization } = useOrganizationStore();
+
   return (
     <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
       {/* Header */}
