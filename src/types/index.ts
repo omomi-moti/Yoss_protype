@@ -28,6 +28,21 @@ export type ProblemTag =
   | '孤立・居場所なし'
   | '地域からの気になる情報';
 
+// 8領域それぞれのスコア（該当なしは0）
+export type DomainScores = Record<SupportCategory, number>;
+
+// 校内チーム会議で検討する児童
+export interface Student {
+  id: string;
+  grade: string;
+  number: number;
+  scores: DomainScores;
+  /** 表示専用。支援候補の抽出には使わない */
+  problems: ProblemTag[];
+  notes: string;
+  currentSupport: string;
+}
+
 // 支援団体の種別
 export type OrganizationType =
   | 'NPO'

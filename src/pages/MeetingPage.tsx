@@ -3,42 +3,19 @@ import { MapPin, TrendingUp, AlertCircle, ChevronDown, ChevronUp, Sparkles, Phon
 import { getSuggestions, mockRecords } from '../data/mockData';
 import { getAllSupports } from '../data/organizations';
 import { useOrganizationStore } from '../hooks/useOrganizationStore';
-import type { ProblemTag } from '../types';
+import DomainScoreBreakdown from '../components/DomainScoreBreakdown';
+import { scoreLevel, scoredDomains, studentsByScore, totalScore } from '../data/students';
 
-// デモ用の児童データ
-const demoStudents = [
-  {
-    id: 'S-001',
-    grade: '5年1組',
-    number: 12,
-    score: 9,
-    problems: ['経済的困窮', '孤立・居場所なし'] as ProblemTag[],
-    notes: '遅刻多い・身だしなみが気になる・給食をたくさん食べる',
-    currentSupport: 'A（担任の声かけ）',
-  },
-  {
-    id: 'S-002',
-    grade: '3年2組',
-    number: 8,
-    score: 7,
-    problems: ['学習の遅れ', '保護者支援が必要'] as ProblemTag[],
-    notes: '宿題未提出が続く・保護者と連絡が取りにくい',
-    currentSupport: 'A（学年主任の面談）',
-  },
-  {
-    id: 'S-003',
-    grade: '6年1組',
-    number: 23,
-    score: 11,
-    problems: ['不登校傾向', '家庭でのケア負担', '孤立・居場所なし'] as ProblemTag[],
-    notes: '欠席増加・弟の世話で疲れている様子・保健室利用増',
-    currentSupport: 'A+B（SC相談開始）',
-  },
-];
+// スコアの水準ごとのバッジ配色
+const SCORE_STYLES = {
+  high: 'bg-red-50 text-red-500',
+  middle: 'bg-yellow-50 text-yellow-600',
+  low: 'bg-gray-50 text-gray-500',
+} as const;
 
 export default function MeetingPage() {
   const { published } = useOrganizationStore();
-  const [selectedStudent, setSelectedStudent] = useState(demoStudents[0]);
+  const [selectedStudent, setSelectedStudent] = useState(studentsByScore[0]);
   const [expandedResource, setExpandedResource] = useState<string | null>(null);
 
   const allSupports = useMemo(() => getAllSupports(published), [published]);
@@ -72,7 +49,7 @@ export default function MeetingPage() {
               <h3 className="text-xs font-bold text-gray-500">検討対象児童</h3>
               <p className="text-[10px] text-gray-400">スクリーニング会議で挙がった児童</p>
             </div>
-            {demoStudents.map(student => (
+            {studentsByScore.map(student => (
               <button
                 key={student.id}
                 onClick={() => { setSelectedStudent(student); setExpandedResource(null); }}
@@ -84,13 +61,17 @@ export default function MeetingPage() {
               >
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-bold text-yoss-dark">{student.grade} {student.number}番</span>
-                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-                    student.score >= 10 ? 'bg-red-50 text-red-500' :
-                    student.score >= 6 ? 'bg-yellow-50 text-yellow-600' :
-                    'bg-gray-50 text-gray-500'
-                  }`}>
-                    {student.score}pt
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${SCORE_STYLES[scoreLevel(totalScore(student.scores))]}`}>
+                    {totalScore(student.scores)}pt
                   </span>
+                </div>
+                {/* スコアが高い領域 */}
+                <div className="flex flex-wrap gap-1 mb-1">
+                  {scoredDomains(student.scores).slice(0, 2).map(domain => (
+                    <span key={domain} className="text-[9px] font-bold bg-yoss-yellow-light text-yoss-yellow-dark px-1.5 py-0.5 rounded">
+                      {domain} {student.scores[domain]}
+                    </span>
+                  ))}
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {student.problems.map(p => (
@@ -115,17 +96,19 @@ export default function MeetingPage() {
                 </h3>
                 <p className="text-xs text-gray-500 mt-0.5">{selectedStudent.notes}</p>
               </div>
-              <div className={`text-lg font-bold px-3 py-1 rounded-lg ${
-                selectedStudent.score >= 10 ? 'bg-red-50 text-red-500' :
-                selectedStudent.score >= 6 ? 'bg-yellow-50 text-yellow-600' :
-                'bg-gray-50 text-gray-500'
-              }`}>
-                合計 {selectedStudent.score}pt
+              <div className={`text-lg font-bold px-3 py-1 rounded-lg shrink-0 ${SCORE_STYLES[scoreLevel(totalScore(selectedStudent.scores))]}`}>
+                合計 {totalScore(selectedStudent.scores)}pt
               </div>
             </div>
+            {/* 8領域別スコア */}
+            <div className="mb-3">
+              <p className="text-[10px] font-bold text-gray-400 mb-1.5">8領域別スコア</p>
+              <DomainScoreBreakdown scores={selectedStudent.scores} />
+            </div>
+
             <div className="flex items-center gap-2 flex-wrap">
               {selectedStudent.problems.map(p => (
-                <span key={p} className="text-[10px] bg-yoss-yellow-light text-yoss-yellow-dark font-bold px-2 py-1 rounded-md">
+                <span key={p} className="text-[10px] bg-gray-100 text-gray-600 font-bold px-2 py-1 rounded-md">
                   {p}
                 </span>
               ))}
