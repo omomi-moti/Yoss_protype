@@ -74,6 +74,10 @@ export interface OrganizationSupport {
   targetGrades: string;
   cost: string;
   capacity: string;
+  /** 実施頻度・曜日・時間帯 */
+  frequency: string;
+  /** 申込方法・必要な手続き */
+  howToUse: string;
   enabled: boolean;
 }
 
@@ -92,6 +96,13 @@ export interface SchoolReview {
   comment: string;
   date: string;
   problemTags: ProblemTag[];
+}
+
+// 検討中の児童との重なりを付けたレビュー（画面Dで関連の高い事例から見せるのに使う）
+export interface RelevantReview {
+  review: SchoolReview;
+  /** 児童の課題タグと重なったタグ */
+  matchedTags: ProblemTag[];
 }
 
 // 登録の単位＝地域の支援団体・組織
@@ -152,6 +163,8 @@ export interface SupportSuggestion {
   targetGrades: string;
   cost: string;
   capacity: string;
+  frequency: string;
+  howToUse: string;
   /** この支援が対応する領域。児童のスコアが1以上の領域だけが候補になる */
   category: SupportCategory;
   /** 児童の category 領域のスコア。表示順の第1キー */

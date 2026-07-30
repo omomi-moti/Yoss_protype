@@ -220,6 +220,8 @@ export function getSuggestions(
             targetGrades: support.targetGrades,
             cost: support.cost,
             capacity: support.capacity,
+            frequency: support.frequency,
+            howToUse: support.howToUse,
             category: support.category,
             matchedScore: scores[support.category],
             organizationId: org.id,
