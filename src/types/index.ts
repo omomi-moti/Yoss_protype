@@ -77,6 +77,13 @@ export interface OrganizationSupport {
   enabled: boolean;
 }
 
+// 学校からのレビューの集計（星の平均と件数）
+export interface ReviewSummary {
+  /** 1〜5の平均。レビューが1件もなければ null */
+  averageRating: number | null;
+  count: number;
+}
+
 // 学校からのレビュー
 export interface SchoolReview {
   schoolName: string;
@@ -140,13 +147,31 @@ export interface DashboardStats {
 export interface SupportSuggestion {
   supportId: string;
   supportName: string;
+  /** 何をしてくれる支援なのか。カードの折りたたみ状態でも見せる */
+  description: string;
+  targetGrades: string;
+  cost: string;
+  capacity: string;
+  /** この支援が対応する領域。児童のスコアが1以上の領域だけが候補になる */
   category: SupportCategory;
+  /** 児童の category 領域のスコア。表示順の第1キー */
+  matchedScore: number;
+  organizationId: string;
   organizationName: string;
   organizationType: OrganizationType;
   contact: OrganizationContact;
+  /** 提供団体に対する学校レビューの集計。表示順の第2キー */
+  review: ReviewSummary;
   cityWideCount: number;
   schoolCount: number;
   continuationRate: number | null;
   isNew: boolean;
-  details: string;
+}
+
+// 画面Dの表示単位：ひとつの領域と、そこに対応できる支援候補
+export interface DomainSuggestionGroup {
+  domain: SupportCategory;
+  /** この児童の domain 領域のスコア */
+  score: number;
+  suggestions: SupportSuggestion[];
 }

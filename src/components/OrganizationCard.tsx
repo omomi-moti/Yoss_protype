@@ -1,4 +1,6 @@
 import { Star, MapPin, Tag, ChevronDown, ChevronUp, MessageSquare, Crown, Phone, Mail, Globe } from 'lucide-react';
+import StarRating from './StarRating';
+import { summarizeReviews } from '../data/organizations';
 import type { Organization, OrganizationType } from '../types';
 
 // 種別ごとのバッジ配色
@@ -11,20 +13,6 @@ const TYPE_STYLES: Record<OrganizationType, string> = {
   'その他': 'bg-gray-100 text-gray-500',
 };
 
-function StarRating({ rating }: { rating: number }) {
-  return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map(i => (
-        <Star
-          key={i}
-          size={12}
-          className={i <= rating ? 'fill-yoss-yellow text-yoss-yellow' : 'text-gray-200'}
-        />
-      ))}
-    </div>
-  );
-}
-
 /**
  * 学校から見た団体カード。
  * 画面C（ディレクトリ）と画面A（登録内容のプレビュー）で共有する。
@@ -34,9 +22,7 @@ export default function OrganizationCard({ org, isExpanded, onToggle }: {
   isExpanded: boolean;
   onToggle: () => void;
 }) {
-  const avgRating = org.reviews.length > 0
-    ? (org.reviews.reduce((sum, r) => sum + r.rating, 0) / org.reviews.length).toFixed(1)
-    : null;
+  const review = summarizeReviews(org.reviews);
 
   const enabledSupports = org.supports.filter(s => s.enabled);
 
@@ -81,13 +67,13 @@ export default function OrganizationCard({ org, isExpanded, onToggle }: {
           </div>
 
           {/* Rating */}
-          {avgRating && (
+          {review.averageRating !== null && (
             <div className="text-right shrink-0">
               <div className="flex items-center gap-1 justify-end">
                 <Star size={14} className="fill-yoss-yellow text-yoss-yellow" />
-                <span className="text-lg font-bold text-yoss-dark">{avgRating}</span>
+                <span className="text-lg font-bold text-yoss-dark">{review.averageRating.toFixed(1)}</span>
               </div>
-              <span className="text-[10px] text-gray-400">{org.reviews.length}件のレビュー</span>
+              <span className="text-[10px] text-gray-400">{review.count}件のレビュー</span>
             </div>
           )}
         </div>
