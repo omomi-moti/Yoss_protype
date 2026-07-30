@@ -4,6 +4,7 @@ import { getSuggestions, groupSuggestionsByDomain, mockRecords } from '../data/m
 import { useOrganizationStore } from '../hooks/useOrganizationStore';
 import DomainSelector from '../components/DomainSelector';
 import SuggestionCard from '../components/SuggestionCard';
+import SupportDetailModal from '../components/SupportDetailModal';
 import {
   problemTagsForDomain,
   scoreLevel,
@@ -24,6 +25,7 @@ export default function MeetingPage() {
   const { published } = useOrganizationStore();
   const [selectedStudent, setSelectedStudent] = useState(studentsByScore[0]);
   const [selectedDomain, setSelectedDomain] = useState<SupportCategory | null>(null);
+  const [detailSupportId, setDetailSupportId] = useState<string | null>(null);
 
   // 支援候補は児童の8領域スコアと、団体が公開している支援から導出する
   const domainGroups = useMemo(() => {
@@ -37,6 +39,13 @@ export default function MeetingPage() {
 
   // その領域にスコアが付いた根拠（先生の実感と繋げるために出す）
   const activeTags = activeGroup ? problemTagsForDomain(selectedStudent, activeGroup.domain) : [];
+
+  // 詳細モーダルの対象。支援と、それを提供する団体の両方が要る
+  const detail = useMemo(() => {
+    const suggestion = activeGroup?.suggestions.find(s => s.supportId === detailSupportId);
+    const organization = published.find(org => org.id === suggestion?.organizationId);
+    return suggestion && organization ? { suggestion, organization } : null;
+  }, [detailSupportId, activeGroup, published]);
 
   return (
     /*
@@ -191,6 +200,7 @@ export default function MeetingPage() {
                         key={suggestion.supportId}
                         suggestion={suggestion}
                         rank={index + 1}
+                        onOpenDetail={() => setDetailSupportId(suggestion.supportId)}
                       />
                     ))}
                   </div>
@@ -201,6 +211,15 @@ export default function MeetingPage() {
 
         </div>
       </div>
+
+      {detail && (
+        <SupportDetailModal
+          suggestion={detail.suggestion}
+          organization={detail.organization}
+          studentTags={selectedStudent.problems}
+          onClose={() => setDetailSupportId(null)}
+        />
+      )}
     </div>
   );
 }

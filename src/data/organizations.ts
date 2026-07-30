@@ -1,4 +1,4 @@
-import type { Organization, OrganizationSupport, OrganizationType, ReviewSummary, SchoolReview, SupportCategory, SupportWithOrg } from '../types';
+import type { Organization, OrganizationSupport, OrganizationType, ProblemTag, RelevantReview, ReviewSummary, SchoolReview, SupportCategory, SupportWithOrg } from '../types';
 
 // 画面Cのフィルタ用（YOSS 8領域の表示順）
 export const SUPPORT_CATEGORIES: SupportCategory[] = [
@@ -242,6 +242,29 @@ export function summarizeReviews(reviews: SchoolReview[]): ReviewSummary {
 
   const total = reviews.reduce((sum, review) => sum + review.rating, 0);
   return { averageRating: total / reviews.length, count: reviews.length };
+}
+
+/**
+ * 学校レビューに「検討中の児童との重なり」を付けて並べ替える。
+ *
+ * 会議で知りたいのは「同じような課題の子にこの団体を使って、こうなったか」なので、
+ * 児童の課題タグと重なるレビューを先に出す。重なりが同数なら新しい順。
+ */
+export function sortReviewsByRelevance(
+  reviews: SchoolReview[],
+  studentTags: ProblemTag[]
+): RelevantReview[] {
+  return reviews
+    .map(review => ({
+      review,
+      matchedTags: review.problemTags.filter(tag => studentTags.includes(tag)),
+    }))
+    .sort((a, b) => {
+      if (a.matchedTags.length !== b.matchedTags.length) {
+        return b.matchedTags.length - a.matchedTags.length;
+      }
+      return b.review.date.localeCompare(a.review.date);
+    });
 }
 
 export const organizations: Organization[] = seeds.map(org => ({

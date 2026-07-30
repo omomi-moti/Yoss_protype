@@ -1,4 +1,4 @@
-import { Phone, Mail, Globe } from 'lucide-react';
+import { Phone, Mail, Globe, ChevronRight } from 'lucide-react';
 import StarRating from './StarRating';
 import SupportConditions from './SupportConditions';
 import type { SupportSuggestion } from '../types';
@@ -13,10 +13,11 @@ import type { SupportSuggestion } from '../types';
  * 連絡先は折りたたまず常に出す。開閉はレイアウトを伸ばしてスクロールを強いる割に、
  * 中身が電話番号とURLだけで量が少なく、操作コストのほうが大きいため。
  */
-export default function SuggestionCard({ suggestion, rank }: {
+export default function SuggestionCard({ suggestion, rank, onOpenDetail }: {
   suggestion: SupportSuggestion;
   /** 領域内の表示順（レビュー評価が高い順）。縦スキャンの起点になる */
   rank: number;
+  onOpenDetail: () => void;
 }) {
   // 実績の有無は枠線の実線／破線で表す
   return (
@@ -96,6 +97,20 @@ export default function SuggestionCard({ suggestion, rank }: {
                 </span>
               )}
             </div>
+
+            {/*
+              詳細はモーダルで開く。カード全体をクリック可能にすると、常時表示している
+              連絡先の選択やリンクを妨げるため、明示的なボタンにする。
+            */}
+            <button
+              onClick={onOpenDetail}
+              className="w-full flex items-center justify-center gap-1 mt-1 py-1.5 rounded-lg border border-gray-200 text-[11px] font-bold text-gray-600 hover:border-yoss-yellow hover:text-yoss-yellow-dark transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yoss-yellow/40"
+            >
+              {suggestion.review.count > 0
+                ? `レビューと詳細を見る（${suggestion.review.count}件）`
+                : '詳細を見る'}
+              <ChevronRight size={13} />
+            </button>
           </div>
         </div>
       </div>

@@ -98,6 +98,13 @@ export interface SchoolReview {
   problemTags: ProblemTag[];
 }
 
+// 検討中の児童との重なりを付けたレビュー（画面Dで関連の高い事例から見せるのに使う）
+export interface RelevantReview {
+  review: SchoolReview;
+  /** 児童の課題タグと重なったタグ */
+  matchedTags: ProblemTag[];
+}
+
 // 登録の単位＝地域の支援団体・組織
 export interface Organization {
   id: string;
