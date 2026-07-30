@@ -14,34 +14,34 @@ export default function Layout() {
   const { draft: myOrganization } = useOrganizationStore();
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          {/* YOSS Logo area */}
-          <div className="w-9 h-9 bg-yoss-yellow rounded-full flex items-center justify-center">
-            <span className="text-white font-bold text-sm">Y</span>
+    // 横長ヘッダーは置かない。ブランドとログイン情報はサイドバーの余白に収め、
+    // 本文の縦スペースを画面の中身に使う。
+    <div className="min-h-screen bg-[#FAFAFA] flex">
+      <nav className="w-52 bg-white border-r border-gray-200 shrink-0 flex flex-col">
+        {/* Brand */}
+        <div className="px-4 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-yoss-yellow rounded-full flex items-center justify-center shrink-0">
+              <span className="text-white font-bold text-xs">Y</span>
+            </div>
+            <div>
+              <div className="leading-none">
+                <span className="text-lg font-bold tracking-wide text-yoss-dark">YOSS</span>
+                <span className="text-[9px] text-gray-400 ml-0.5 align-super">®</span>
+              </div>
+              <p className="text-[10px] text-gray-500 mt-0.5">クラウドサービス</p>
+            </div>
           </div>
-          <div>
-            <span className="text-xl font-bold tracking-wide text-yoss-dark">YOSS</span>
-            <span className="text-[10px] text-gray-400 ml-1 align-super">®</span>
-            <span className="text-xs text-gray-500 ml-2">クラウドサービス</span>
-          </div>
-          <span className="ml-3 px-2 py-0.5 bg-yoss-yellow-light text-yoss-yellow-dark text-[10px] font-bold rounded">
+          <span className="inline-block mt-2.5 px-2 py-0.5 bg-yoss-yellow-light text-yoss-yellow-dark text-[10px] font-bold rounded">
             PROTOTYPE
           </span>
         </div>
-        <div className="text-xs text-gray-400">
-          {myOrganization.name} — 2026年度
-        </div>
-      </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <nav className="w-52 bg-white border-r border-gray-200 py-4 shrink-0">
-          <div className="px-4 mb-4">
-            <p className="text-[10px] text-gray-400 font-bold tracking-widest uppercase">Menu</p>
-          </div>
+        {/* Menu */}
+        <div className="py-4">
+          <p className="px-4 mb-3 text-[10px] text-gray-400 font-bold tracking-widest uppercase">
+            Menu
+          </p>
           {navItems.map(item => (
             <NavLink
               key={item.to}
@@ -66,13 +66,18 @@ export default function Layout() {
               )}
             </NavLink>
           ))}
-        </nav>
+        </div>
 
-        {/* Main content */}
-        <main className="flex-1 overflow-y-auto p-6">
-          <Outlet />
-        </main>
-      </div>
+        {/* ログイン中の団体。mt-auto でサイドバーの下端に置く */}
+        <div className="mt-auto px-4 py-3 border-t border-gray-100">
+          <p className="text-[10px] text-gray-500 leading-relaxed">{myOrganization.name}</p>
+          <p className="text-[10px] text-gray-400">2026年度</p>
+        </div>
+      </nav>
+
+      <main className="flex-1 p-6">
+        <Outlet />
+      </main>
     </div>
   );
 }

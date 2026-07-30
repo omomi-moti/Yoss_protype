@@ -1,5 +1,6 @@
-import type { SupportRecord, SupportWithOrg, DashboardStats, SupportSuggestion } from '../types';
-import { getAllSupports } from './organizations';
+import type { DomainScores, DomainSuggestionGroup, Organization, SupportRecord, DashboardStats, SupportSuggestion } from '../types';
+import { getAllSupports, summarizeReviews } from './organizations';
+import { scoredDomains } from './students';
 
 const supportIndex = new Map(getAllSupports().map(s => [s.id, s]));
 
@@ -154,60 +155,86 @@ export function computeStats(records: SupportRecord[]): DashboardStats {
   };
 }
 
-// 画面D用：特定の問題タグに対する支援候補を生成
+/**
+ * 支援候補の表示順。
+ * ①児童の必要度が高い領域の支援を優先（領域スコアの降順）
+ * ②同じ領域スコアなら、学校からのレビュー評価が高い順。レビューがない団体は末尾
+ */
+function compareSuggestions(a: SupportSuggestion, b: SupportSuggestion): number {
+  if (a.matchedScore !== b.matchedScore) return b.matchedScore - a.matchedScore;
+
+  // レビューなしを末尾に回すため、評価なしは 1〜5 より小さい値として扱う
+  const ratingA = a.review.averageRating ?? -1;
+  const ratingB = b.review.averageRating ?? -1;
+  if (ratingA !== ratingB) return ratingB - ratingA;
+
+  return b.review.count - a.review.count;
+}
+
+/**
+ * 支援候補を領域ごとにまとめる。
+ * 領域の順序は児童のスコアが高い順、領域内の順序は getSuggestions() の並びを引き継ぐ。
+ */
+export function groupSuggestionsByDomain(
+  suggestions: SupportSuggestion[],
+  scores: DomainScores
+): DomainSuggestionGroup[] {
+  return scoredDomains(scores)
+    .map(domain => ({
+      domain,
+      score: scores[domain],
+      suggestions: suggestions.filter(suggestion => suggestion.category === domain),
+    }))
+    .filter(group => group.suggestions.length > 0);
+}
+
+/**
+ * 画面D用：児童の8領域スコアから支援候補を生成する。
+ *
+ * 児童のスコアが1以上の領域を「支援が必要な領域」とし、その領域の支援を
+ * 「対応可能」（enabled）として登録している団体だけを候補にする。
+ */
 export function getSuggestions(
-  problemTags: string[],
-  supports: SupportWithOrg[],
+  scores: DomainScores,
+  orgs: Organization[],
   records: SupportRecord[],
   schoolName: string
 ): SupportSuggestion[] {
-  // 問題タグ → YOSS 8領域のマッピング
-  const tagToCategory: Record<string, string[]> = {
-    '不登校傾向': ['学校適応', '地域情報'],
-    '欠席・遅刻': ['学校適応'],
-    '友人トラブル': ['学校適応'],
-    '学習の遅れ': ['学習'],
-    '宿題未提出': ['学習'],
-    '家庭でのケア負担': ['家庭状況', '福祉'],
-    '保護者支援が必要': ['家庭状況'],
-    '連絡が取れない': ['家庭状況'],
-    '発達特性': ['発達'],
-    '保健室頻回': ['健康'],
-    '経済的困窮': ['経済', '地域情報'],
-    '諸費滞納': ['経済'],
-    'SC/SSW関与': ['福祉'],
-    '要対協ケース': ['福祉'],
-    '孤立・居場所なし': ['地域情報'],
-    '地域からの気になる情報': ['地域情報'],
-  };
+  const neededDomains = new Set(scoredDomains(scores));
 
-  const relevantCategories = new Set<string>();
-  problemTags.forEach(tag => {
-    (tagToCategory[tag] || []).forEach(cat => relevantCategories.add(cat));
-  });
+  return orgs
+    .flatMap(org => {
+      const review = summarizeReviews(org.reviews);
 
-  return supports
-    .filter(s => s.enabled && relevantCategories.has(s.category))
-    .map(s => {
-      const relatedRecords = records.filter(rec => rec.supportId === s.id);
-      const schoolRecords = relatedRecords.filter(rec => rec.schoolName === schoolName);
-      const continuing = relatedRecords.filter(rec => rec.continuationStatus === '継続中');
+      return org.supports
+        .filter(support => support.enabled && neededDomains.has(support.category))
+        .map(support => {
+          const relatedRecords = records.filter(rec => rec.supportId === support.id);
+          const schoolRecords = relatedRecords.filter(rec => rec.schoolName === schoolName);
+          const continuing = relatedRecords.filter(rec => rec.continuationStatus === '継続中');
 
-      return {
-        supportId: s.id,
-        supportName: s.name,
-        category: s.category,
-        organizationName: s.organizationName,
-        organizationType: s.organizationType,
-        contact: s.contact,
-        cityWideCount: relatedRecords.length,
-        schoolCount: schoolRecords.length,
-        continuationRate: relatedRecords.length > 0
-          ? Math.round((continuing.length / relatedRecords.length) * 100)
-          : null,
-        isNew: relatedRecords.length === 0,
-        details: `${s.targetGrades} / ${s.cost} / ${s.capacity}`,
-      };
+          return {
+            supportId: support.id,
+            supportName: support.name,
+            description: support.description,
+            targetGrades: support.targetGrades,
+            cost: support.cost,
+            capacity: support.capacity,
+            category: support.category,
+            matchedScore: scores[support.category],
+            organizationId: org.id,
+            organizationName: org.name,
+            organizationType: org.type,
+            contact: org.contact,
+            review,
+            cityWideCount: relatedRecords.length,
+            schoolCount: schoolRecords.length,
+            continuationRate: relatedRecords.length > 0
+              ? Math.round((continuing.length / relatedRecords.length) * 100)
+              : null,
+            isNew: relatedRecords.length === 0,
+          };
+        });
     })
-    .sort((a, b) => b.cityWideCount - a.cityWideCount);
+    .sort(compareSuggestions);
 }

@@ -1,4 +1,4 @@
-import type { Organization, OrganizationSupport, OrganizationType, SupportCategory, SupportWithOrg } from '../types';
+import type { Organization, OrganizationSupport, OrganizationType, ReviewSummary, SchoolReview, SupportCategory, SupportWithOrg } from '../types';
 
 // 画面Cのフィルタ用（YOSS 8領域の表示順）
 export const SUPPORT_CATEGORIES: SupportCategory[] = [
@@ -230,6 +230,18 @@ const seeds: OrganizationSeed[] = [
 // 対応領域は「現在対応可能な支援」から導出する
 export function deriveCategories(supports: OrganizationSupport[]): SupportCategory[] {
   return [...new Set(supports.filter(s => s.enabled).map(s => s.category))];
+}
+
+/**
+ * 学校レビューを集計する。
+ * SchoolReview.supportUsed は自由記述（「保護者相談窓口（LINE）」など）で支援メニューと
+ * 1対1に対応しないため、集計は団体単位で行う。
+ */
+export function summarizeReviews(reviews: SchoolReview[]): ReviewSummary {
+  if (reviews.length === 0) return { averageRating: null, count: 0 };
+
+  const total = reviews.reduce((sum, review) => sum + review.rating, 0);
+  return { averageRating: total / reviews.length, count: reviews.length };
 }
 
 export const organizations: Organization[] = seeds.map(org => ({

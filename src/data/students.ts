@@ -1,4 +1,4 @@
-import type { DomainScores, Student, SupportCategory } from '../types';
+import type { DomainScores, ProblemTag, Student, SupportCategory } from '../types';
 import { SUPPORT_CATEGORIES } from './organizations';
 
 /** 1領域あたりのスコア上限（バーの分母に使う） */
@@ -22,6 +22,29 @@ export function scoredDomains(scores: DomainScores): SupportCategory[] {
   return SUPPORT_CATEGORIES
     .filter(category => scores[category] > 0)
     .sort((a, b) => scores[b] - scores[a]);
+}
+
+/**
+ * 8領域と、スクリーニングの問題タグの対応。
+ *
+ * 支援候補の抽出は領域スコアだけで行う（Student.problems は使わない）。この対応は
+ * 「なぜこの領域にスコアが付いているのか」を先生に示す説明のためだけに使う。
+ */
+const DOMAIN_PROBLEM_TAGS: Record<SupportCategory, ProblemTag[]> = {
+  学校適応: ['不登校傾向', '欠席・遅刻', '友人トラブル'],
+  学習: ['学習の遅れ', '宿題未提出'],
+  家庭状況: ['家庭でのケア負担', '保護者支援が必要', '連絡が取れない'],
+  発達: ['発達特性'],
+  健康: ['保健室頻回'],
+  経済: ['経済的困窮', '諸費滞納'],
+  福祉: ['家庭でのケア負担', 'SC/SSW関与', '要対協ケース'],
+  地域情報: ['不登校傾向', '経済的困窮', '孤立・居場所なし', '地域からの気になる情報'],
+};
+
+/** その領域にスコアが付いた根拠として示せる、この児童の問題タグ */
+export function problemTagsForDomain(student: Student, domain: SupportCategory): ProblemTag[] {
+  const relatedTags = DOMAIN_PROBLEM_TAGS[domain];
+  return student.problems.filter(tag => relatedTags.includes(tag));
 }
 
 /** スコアの水準（バッジの色分けに使う） */
