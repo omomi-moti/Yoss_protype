@@ -1,5 +1,6 @@
 import { Phone, Mail, Globe } from 'lucide-react';
 import StarRating from './StarRating';
+import SupportConditions from './SupportConditions';
 import type { SupportSuggestion } from '../types';
 
 /**
@@ -62,25 +63,8 @@ export default function SuggestionCard({ suggestion, rank }: {
             </p>
           </div>
 
-          {/*
-            ③利用条件：ラベルの位置を固定した定義リストにする。
-            どのカードでも同じ行に同じ項目が来るので、カードをまたいだ比較が視線移動なしでできる。
-          */}
-          <dl className="bg-gray-50 rounded-lg px-3 py-2 space-y-0.5">
-            {[
-              { label: '対象', value: suggestion.targetGrades },
-              { label: '費用', value: suggestion.cost },
-              { label: '定員', value: suggestion.capacity },
-            ].map(item => (
-              <div key={item.label} className="flex gap-3 text-xs">
-                <dt className="text-gray-400 w-7 shrink-0">{item.label}</dt>
-                {/* 登録画面で空のまま公開できる項目なので、未記入は「—」で埋める */}
-                <dd className={item.value ? 'font-bold text-yoss-dark' : 'text-gray-300'}>
-                  {item.value || '—'}
-                </dd>
-              </div>
-            ))}
-          </dl>
+          {/* ③利用条件 */}
+          <SupportConditions support={suggestion} />
 
           {/* ④実績と連絡先。mt-auto でカード下端に揃え、行内のカードで位置が一致するようにする */}
           <div className="space-y-1.5 mt-auto">

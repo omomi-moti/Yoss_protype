@@ -1,5 +1,5 @@
 import { Star, MapPin, Tag, ChevronDown, ChevronUp, MessageSquare, Crown, Phone, Mail, Globe } from 'lucide-react';
-import StarRating from './StarRating';
+import ReviewList from './ReviewList';
 import { summarizeReviews } from '../data/organizations';
 import type { Organization, OrganizationType } from '../types';
 
@@ -146,37 +146,12 @@ export default function OrganizationCard({ org, isExpanded, onToggle }: {
 
           {/* Reviews */}
           {org.reviews.length > 0 && (
-            <div className="border-t border-gray-100 p-5">
+            <div className="border-t border-gray-100 p-5 bg-gray-50/50">
               <h4 className="text-xs font-bold text-gray-500 mb-3 flex items-center gap-1">
                 <MessageSquare size={12} />
                 学校からのレビュー
               </h4>
-              <div className="space-y-3">
-                {org.reviews.map((review, idx) => (
-                  <div key={idx} className="bg-gray-50 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <StarRating rating={review.rating} />
-                        <span className="text-[10px] font-bold text-yoss-dark">{review.supportUsed}</span>
-                      </div>
-                      <span className="text-[10px] text-gray-400">{review.date}</span>
-                    </div>
-                    <p className="text-xs text-gray-600 leading-relaxed mb-2">
-                      {review.comment}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-gray-400">{review.schoolName}</span>
-                      <div className="flex gap-1">
-                        {review.problemTags.map(tag => (
-                          <span key={tag} className="text-[9px] bg-white text-gray-500 px-1.5 py-0.5 rounded border border-gray-200">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <ReviewList reviews={org.reviews} />
             </div>
           )}
         </div>
