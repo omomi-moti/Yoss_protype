@@ -127,7 +127,8 @@ export default function RegisterPage() {
   const addSupport = (category: SupportCategory) => {
     const id = `s-new-${nextSupportId.current++}`;
     const support: OrganizationSupport = {
-      id, name: '', category, description: '', targetGrades: '', cost: '', capacity: '', enabled: true,
+      id, name: '', category, description: '', targetGrades: '', cost: '', capacity: '',
+      frequency: '', howToUse: '', enabled: true,
     };
     setProfile(prev => ({ ...prev, supports: [...prev.supports, support] }));
     setDrafts(prev => ({ ...prev, [id]: { ...support } }));
@@ -440,15 +441,18 @@ export default function RegisterPage() {
                         </div>
                         <div className="grid grid-cols-3 gap-3">
                           {([
-                            { key: 'targetGrades', label: '対象学年' },
-                            { key: 'cost', label: '費用' },
-                            { key: 'capacity', label: '定員・受入枠' },
+                            { key: 'targetGrades', label: '対象学年', placeholder: '例）小4〜中3' },
+                            { key: 'cost', label: '費用', placeholder: '例）無料' },
+                            { key: 'capacity', label: '定員・受入枠', placeholder: '例）各回15名' },
+                            { key: 'frequency', label: '実施頻度', placeholder: '例）週1回（水 16:00〜18:00）' },
+                            { key: 'howToUse', label: '利用方法', placeholder: '例）電話で空き枠を確認のうえ申込' },
                           ] as const).map(field => (
-                            <div key={field.key}>
+                            <div key={field.key} className={field.key === 'howToUse' ? 'col-span-2' : ''}>
                               <label className="text-[10px] text-gray-400 font-bold">{field.label}</label>
                               <input
                                 type="text"
                                 value={draft[field.key]}
+                                placeholder={field.placeholder}
                                 onChange={e => updateDraft(support.id, field.key, e.target.value)}
                                 className="w-full mt-0.5 px-3 py-1.5 text-xs border border-gray-200 rounded-md bg-white focus:outline-none focus:border-yoss-yellow focus:ring-1 focus:ring-yoss-yellow/20"
                               />

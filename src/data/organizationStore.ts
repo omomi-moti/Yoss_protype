@@ -52,9 +52,28 @@ function clear(key: string) {
   }
 }
 
+/**
+ * 保存済みのデータに、あとから追加した項目を補う。
+ * localStorage には過去のバージョンの形のまま残っているため、
+ * 欠けている項目を空文字で埋めないと入力欄が uncontrolled になる。
+ */
+function migrate(org: Organization): Organization {
+  return {
+    ...org,
+    supports: org.supports.map(support => ({
+      ...support,
+      frequency: support.frequency ?? '',
+      howToUse: support.howToUse ?? '',
+    })),
+  };
+}
+
 function buildInitialState(): StoreState {
-  const storedPublished = read<Organization>(PUBLISHED_KEY);
+  const stored = read<Organization>(PUBLISHED_KEY);
   const storedDraft = read<Organization>(DRAFT_KEY);
+
+  const storedPublished = stored ? migrate(stored) : null;
+  const draft = storedDraft ? migrate(storedDraft) : null;
 
   const published = storedPublished
     ? organizations.map(o => (o.id === storedPublished.id ? storedPublished : o))
@@ -62,7 +81,7 @@ function buildInitialState(): StoreState {
 
   return {
     published,
-    draft: storedDraft ?? (storedPublished ?? mockMine),
+    draft: draft ?? (storedPublished ?? mockMine),
     draftSavedAt: read<string>(SAVED_AT_KEY),
   };
 }
