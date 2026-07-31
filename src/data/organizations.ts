@@ -41,7 +41,7 @@ const seeds: OrganizationSeed[] = [
     reviews: [
       {
         schoolName: '○○小学校',
-        supportUsed: '子ども食堂',
+        supportId: 'r4',
         rating: 5,
         comment: '経済的に厳しい家庭の児童を繋いだところ、食事の確保だけでなく地域の大人との関係ができ、表情が明るくなった。',
         date: '2026-06',
@@ -65,7 +65,7 @@ const seeds: OrganizationSeed[] = [
     reviews: [
       {
         schoolName: '△△小学校',
-        supportUsed: '学習支援教室',
+        supportId: 'r7',
         rating: 4,
         comment: '不登校傾向の児童が学校外の学びの場として通い始めた。大学生との距離感が本人に合っていたようだ。',
         date: '2026-05',
@@ -91,7 +91,7 @@ const seeds: OrganizationSeed[] = [
     reviews: [
       {
         schoolName: '□□中学校',
-        supportUsed: '保護者相談窓口',
+        supportId: 'r9',
         rating: 5,
         comment: 'ヤングケアラーの疑いがあった生徒について、こども家庭センター経由で保護者支援に繋がった。担任一人では絶対にできなかった。',
         date: '2026-07',
@@ -99,7 +99,7 @@ const seeds: OrganizationSeed[] = [
       },
       {
         schoolName: '☆☆中学校',
-        supportUsed: '保護者相談窓口（LINE）',
+        supportId: 'r9',
         rating: 5,
         comment: 'LINE相談は保護者のハードルが低く、電話や来所では繋がらなかった家庭と初めてコンタクトが取れた。',
         date: '2026-07',
@@ -107,7 +107,7 @@ const seeds: OrganizationSeed[] = [
       },
       {
         schoolName: '◇◇小学校',
-        supportUsed: '家庭訪問支援',
+        supportId: 'r10',
         rating: 5,
         comment: '民生委員さんとSSWが一緒に訪問してくれた。保護者が心を開いてくれて、就学援助の申請にもつながった。',
         date: '2026-06',
@@ -115,7 +115,7 @@ const seeds: OrganizationSeed[] = [
       },
       {
         schoolName: '△△小学校',
-        supportUsed: 'ヤングケアラー相談',
+        supportId: 's-ycarer',
         rating: 5,
         comment: 'ヘルパー派遣により弟の世話の負担が減り、放課後に友達と過ごす時間ができた。本人の笑顔が増えた。',
         date: '2026-07',
@@ -139,7 +139,7 @@ const seeds: OrganizationSeed[] = [
     reviews: [
       {
         schoolName: '○○小学校',
-        supportUsed: 'フリースクール通所',
+        supportId: 'r6',
         rating: 5,
         comment: '半年以上完全不登校だった児童が、フリースクールを経由して少しずつ別室登校を始めた。出席認定の仕組みが保護者の安心感につながった。',
         date: '2026-06',
@@ -179,7 +179,7 @@ const seeds: OrganizationSeed[] = [
     reviews: [
       {
         schoolName: '○○小学校',
-        supportUsed: '就学援助',
+        supportId: 'r1',
         rating: 4,
         comment: '諸費の滞納が続いていた家庭に案内。申請後、持ち物の状態が改善された。',
         date: '2026-05',
@@ -187,7 +187,7 @@ const seeds: OrganizationSeed[] = [
       },
       {
         schoolName: '□□中学校',
-        supportUsed: 'スクールカウンセラー連携',
+        supportId: 'r13',
         rating: 5,
         comment: 'SSWが定期的に来てくれるので、気になった時にすぐ相談できる。巡回の頻度がもう少し上がると助かる。',
         date: '2026-07',
@@ -232,16 +232,25 @@ export function deriveCategories(supports: OrganizationSupport[]): SupportCatego
   return [...new Set(supports.filter(s => s.enabled).map(s => s.category))];
 }
 
-/**
- * 学校レビューを集計する。
- * SchoolReview.supportUsed は自由記述（「保護者相談窓口（LINE）」など）で支援メニューと
- * 1対1に対応しないため、集計は団体単位で行う。
- */
+/** 学校レビューの平均と件数を出す */
 export function summarizeReviews(reviews: SchoolReview[]): ReviewSummary {
   if (reviews.length === 0) return { averageRating: null, count: 0 };
 
   const total = reviews.reduce((sum, review) => sum + review.rating, 0);
   return { averageRating: total / reviews.length, count: reviews.length };
+}
+
+/** 特定の支援メニューへのレビューだけを集計する */
+export function summarizeReviewsForSupport(
+  reviews: SchoolReview[],
+  supportId: string
+): ReviewSummary {
+  return summarizeReviews(reviews.filter(review => review.supportId === supportId));
+}
+
+/** レビューの対象になった支援メニューの名前。登録から消えた支援も表示できるようにする */
+export function supportNameOf(supports: OrganizationSupport[], supportId: string): string {
+  return supports.find(support => support.id === supportId)?.name ?? '（削除された支援）';
 }
 
 /**

@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { getSuggestions, groupSuggestionsByDomain, mockRecords } from '../data/mockData';
 import { useOrganizationStore } from '../hooks/useOrganizationStore';
+import { currentSchool } from '../data/schools';
 import DomainSelector from '../components/DomainSelector';
 import SuggestionCard from '../components/SuggestionCard';
 import SupportDetailModal from '../components/SupportDetailModal';
@@ -29,7 +30,7 @@ export default function MeetingPage() {
 
   // 支援候補は児童の8領域スコアと、団体が公開している支援から導出する
   const domainGroups = useMemo(() => {
-    const suggestions = getSuggestions(selectedStudent.scores, published, mockRecords, '○○小学校');
+    const suggestions = getSuggestions(selectedStudent.scores, published, mockRecords, currentSchool);
     return groupSuggestionsByDomain(suggestions, selectedStudent.scores);
   }, [selectedStudent, published]);
 
@@ -58,6 +59,8 @@ export default function MeetingPage() {
       <div className="mb-4 shrink-0">
         <div className="flex items-center gap-2 mb-1">
           <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-green-50 text-green-600">学校向け</span>
+          {/* 「御校 N件」の基準がどの学校なのかを画面上で示す */}
+          <span className="text-[10px] text-gray-400">{currentSchool}</span>
         </div>
         <h1 className="text-xl font-bold text-yoss-dark">校内チーム会議 — 支援候補表示</h1>
         <p className="text-sm text-gray-500 mt-1">

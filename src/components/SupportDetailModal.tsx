@@ -48,14 +48,20 @@ export default function SupportDetailModal({ suggestion, organization, studentTa
             {organization.type}
           </p>
           {suggestion.review.averageRating !== null && (
-            <div className="flex items-center gap-2 mt-1.5">
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
               <StarRating rating={Math.round(suggestion.review.averageRating)} size={12} />
               <span className="text-xs font-bold text-yoss-dark">
                 {suggestion.review.averageRating.toFixed(1)}
               </span>
               <span className="text-[10px] text-gray-400">
-                団体へのレビュー {suggestion.review.count}件
+                この支援へのレビュー {suggestion.review.count}件
               </span>
+              {suggestion.organizationReview.count > suggestion.review.count && (
+                <span className="text-[10px] text-gray-400">
+                  / 団体全体 ★{suggestion.organizationReview.averageRating?.toFixed(1)}
+                  （{suggestion.organizationReview.count}件）
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -97,6 +103,7 @@ export default function SupportDetailModal({ suggestion, organization, studentTa
           <h3 className="text-xs font-bold text-gray-500 mb-2 flex items-center gap-1">
             <MessageSquare size={12} />
             学校からのレビュー
+            <span className="font-normal text-gray-400">（この団体の全支援）</span>
           </h3>
 
           {organization.reviews.length === 0 ? (
@@ -112,6 +119,7 @@ export default function SupportDetailModal({ suggestion, organization, studentTa
                   </p>
                   <ReviewList
                     reviews={related.map(item => item.review)}
+                    supports={organization.supports}
                     highlightTags={studentTags}
                   />
                 </div>
@@ -122,7 +130,7 @@ export default function SupportDetailModal({ suggestion, organization, studentTa
                   <p className="text-[11px] font-bold text-gray-400 mb-1.5">
                     {related.length > 0 ? 'そのほかのレビュー' : 'レビュー'}（{others.length}件）
                   </p>
-                  <ReviewList reviews={others.map(item => item.review)} />
+                  <ReviewList reviews={others.map(item => item.review)} supports={organization.supports} />
                 </div>
               )}
             </div>

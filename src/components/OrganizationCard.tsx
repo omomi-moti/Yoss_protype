@@ -151,7 +151,7 @@ export default function OrganizationCard({ org, isExpanded, onToggle }: {
                 <MessageSquare size={12} />
                 学校からのレビュー
               </h4>
-              <ReviewList reviews={org.reviews} />
+              <ReviewList reviews={org.reviews} supports={org.supports} />
             </div>
           )}
         </div>

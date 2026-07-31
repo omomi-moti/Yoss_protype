@@ -1,4 +1,4 @@
-import type { Organization } from '../types';
+import type { Organization, OrganizationSupport, SchoolReview } from '../types';
 import { deriveCategories, organizations } from './organizations';
 
 /**
@@ -53,9 +53,24 @@ function clear(key: string) {
 }
 
 /**
- * 保存済みのデータに、あとから追加した項目を補う。
- * localStorage には過去のバージョンの形のまま残っているため、
- * 欠けている項目を空文字で埋めないと入力欄が uncontrolled になる。
+ * 旧形式のレビュー（支援名を supportUsed に自由記述で持っていた）を supportId に寄せる。
+ * 「保護者相談窓口（LINE）」のように支援名に補足が付く書き方があったため、前方一致でも拾う。
+ */
+function migrateReview(review: SchoolReview, supports: OrganizationSupport[]): SchoolReview {
+  if (review.supportId) return review;
+
+  const legacyName = (review as SchoolReview & { supportUsed?: string }).supportUsed ?? '';
+  const matched =
+    supports.find(support => support.name === legacyName) ??
+    supports.find(support => legacyName.startsWith(support.name));
+
+  return { ...review, supportId: matched?.id ?? '' };
+}
+
+/**
+ * 保存済みのデータに、あとから追加・変更した項目を合わせる。
+ * localStorage には過去のバージョンの形のまま残っているため、欠けている項目を埋めないと
+ * 入力欄が uncontrolled になったり、レビューが支援に紐づかなくなる。
  */
 function migrate(org: Organization): Organization {
   return {
@@ -65,6 +80,7 @@ function migrate(org: Organization): Organization {
       frequency: support.frequency ?? '',
       howToUse: support.howToUse ?? '',
     })),
+    reviews: org.reviews.map(review => migrateReview(review, org.supports)),
   };
 }
 

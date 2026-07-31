@@ -1,12 +1,15 @@
 import StarRating from './StarRating';
-import type { ProblemTag, SchoolReview } from '../types';
+import { supportNameOf } from '../data/organizations';
+import type { OrganizationSupport, ProblemTag, SchoolReview } from '../types';
 
 /**
  * 学校からのレビュー一覧。
  * 画面C（団体カードの詳細）と画面D（支援の詳細モーダル）で共有する。
  */
-export default function ReviewList({ reviews, highlightTags = [] }: {
+export default function ReviewList({ reviews, supports, highlightTags = [] }: {
   reviews: SchoolReview[];
+  /** レビューの supportId から支援名を引くために渡す */
+  supports: OrganizationSupport[];
   /** 検討中の児童の課題タグ。一致したタグを強調する（画面D用） */
   highlightTags?: ProblemTag[];
 }) {
@@ -17,7 +20,9 @@ export default function ReviewList({ reviews, highlightTags = [] }: {
           <div className="flex items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-2">
               <StarRating rating={review.rating} />
-              <span className="text-[11px] font-bold text-yoss-dark">{review.supportUsed}</span>
+              <span className="text-[11px] font-bold text-yoss-dark">
+                {supportNameOf(supports, review.supportId)}
+              </span>
             </div>
             <span className="text-[10px] text-gray-400 shrink-0">{review.date}</span>
           </div>
