@@ -1,5 +1,6 @@
-import type { DomainScores, DomainSuggestionGroup, Organization, SupportRecord, DashboardStats, SupportSuggestion } from '../types';
-import { getAllSupports, summarizeReviews } from './organizations';
+import type { DomainScores, DomainSuggestionGroup, Organization, SupportRecord, SupportSuggestion } from '../types';
+import { getAllSupports, summarizeReviews, summarizeReviewsForSupport } from './organizations';
+import { SCHOOLS } from './schools';
 import { scoredDomains } from './students';
 
 const supportIndex = new Map(getAllSupports().map(s => [s.id, s]));
@@ -29,8 +30,6 @@ function buildRecords(
     ...fields(i),
   }));
 }
-
-const SCHOOLS = ['○○小学校', '△△小学校', '□□中学校', '◇◇小学校', '☆☆中学校'];
 
 // 軸②：支援実績のダミーデータ（自動集計される想定）
 export const mockRecords: SupportRecord[] = [
@@ -100,65 +99,10 @@ export const mockRecords: SupportRecord[] = [
   })),
 ];
 
-// ダッシュボード用集計関数
-export function computeStats(records: SupportRecord[]): DashboardStats {
-  const uniqueStudents = new Set(records.map(r => r.id)).size;
-  const continuingCount = records.filter(r => r.continuationStatus === '継続中').length;
-  const improvedCount = records.filter(r => r.improved).length;
-
-  // 問題タグ別集計
-  const problemMap = new Map<string, number>();
-  records.forEach(r => {
-    r.problemTags.forEach(tag => {
-      problemMap.set(tag, (problemMap.get(tag) || 0) + 1);
-    });
-  });
-  const byProblem = Array.from(problemMap.entries())
-    .map(([tag, count]) => ({ tag: tag as any, count }))
-    .sort((a, b) => b.count - a.count);
-
-  // 支援メニュー別集計
-  const supportMap = new Map<string, SupportRecord[]>();
-  records.forEach(r => {
-    const list = supportMap.get(r.supportId) || [];
-    list.push(r);
-    supportMap.set(r.supportId, list);
-  });
-  const bySupport = Array.from(supportMap.values())
-    .map(recs => ({
-      name: recs[0].supportName,
-      organizationName: recs[0].organizationName,
-      count: recs.length,
-      continuationRate: Math.round((recs.filter(r => r.continuationStatus === '継続中').length / recs.length) * 100),
-      improvementRate: Math.round((recs.filter(r => r.improved).length / recs.length) * 100),
-    }))
-    .sort((a, b) => b.count - a.count);
-
-  // 月別トレンド
-  const monthMap = new Map<string, number>();
-  records.forEach(r => {
-    const month = r.date.substring(0, 7);
-    monthMap.set(month, (monthMap.get(month) || 0) + 1);
-  });
-  const monthlyTrend = Array.from(monthMap.entries())
-    .map(([month, count]) => ({ month: month.replace('2026-', '') + '月', count }))
-    .sort((a, b) => a.month.localeCompare(b.month));
-
-  return {
-    totalStudentsSupported: uniqueStudents,
-    totalRecords: records.length,
-    continuationRate: Math.round((continuingCount / records.length) * 100),
-    improvementRate: Math.round((improvedCount / records.length) * 100),
-    byProblem,
-    bySupport,
-    monthlyTrend,
-  };
-}
-
 /**
  * 支援候補の表示順。
  * ①児童の必要度が高い領域の支援を優先（領域スコアの降順）
- * ②同じ領域スコアなら、学校からのレビュー評価が高い順。レビューがない団体は末尾
+ * ②同じ領域スコアなら、その支援へのレビュー評価が高い順。レビューがない支援は末尾
  */
 function compareSuggestions(a: SupportSuggestion, b: SupportSuggestion): number {
   if (a.matchedScore !== b.matchedScore) return b.matchedScore - a.matchedScore;
@@ -204,11 +148,12 @@ export function getSuggestions(
 
   return orgs
     .flatMap(org => {
-      const review = summarizeReviews(org.reviews);
+      const organizationReview = summarizeReviews(org.reviews);
 
       return org.supports
         .filter(support => support.enabled && neededDomains.has(support.category))
         .map(support => {
+          const review = summarizeReviewsForSupport(org.reviews, support.id);
           const relatedRecords = records.filter(rec => rec.supportId === support.id);
           const schoolRecords = relatedRecords.filter(rec => rec.schoolName === schoolName);
           const continuing = relatedRecords.filter(rec => rec.continuationStatus === '継続中');
@@ -229,6 +174,7 @@ export function getSuggestions(
             organizationType: org.type,
             contact: org.contact,
             review,
+            organizationReview,
             cityWideCount: relatedRecords.length,
             schoolCount: schoolRecords.length,
             continuationRate: relatedRecords.length > 0

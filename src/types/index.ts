@@ -91,7 +91,8 @@ export interface ReviewSummary {
 // 学校からのレビュー
 export interface SchoolReview {
   schoolName: string;
-  supportUsed: string;
+  /** どの支援メニューへのレビューか。表示名は団体の supports から引く */
+  supportId: string;
   rating: number; // 1-5
   comment: string;
   date: string;
@@ -143,17 +144,6 @@ export interface SupportRecord {
   improved: boolean;
 }
 
-// ダッシュボード統計
-export interface DashboardStats {
-  totalStudentsSupported: number;
-  totalRecords: number;
-  continuationRate: number;
-  improvementRate: number;
-  byProblem: { tag: ProblemTag; count: number }[];
-  bySupport: { name: string; organizationName: string; count: number; continuationRate: number; improvementRate: number }[];
-  monthlyTrend: { month: string; count: number }[];
-}
-
 // 校内チーム会議で表示する支援候補
 export interface SupportSuggestion {
   supportId: string;
@@ -173,8 +163,10 @@ export interface SupportSuggestion {
   organizationName: string;
   organizationType: OrganizationType;
   contact: OrganizationContact;
-  /** 提供団体に対する学校レビューの集計。表示順の第2キー */
+  /** この支援へのレビューの集計。表示順の第2キー */
   review: ReviewSummary;
+  /** 提供団体全体へのレビューの集計。支援単体の件数が少ないときの補足に使う */
+  organizationReview: ReviewSummary;
   cityWideCount: number;
   schoolCount: number;
   continuationRate: number | null;

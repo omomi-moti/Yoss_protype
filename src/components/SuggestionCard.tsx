@@ -44,13 +44,20 @@ export default function SuggestionCard({ suggestion, rank, onOpenDetail }: {
                   </span>
                 </div>
                 <p className="text-[11px] text-gray-400 mt-0.5">
-                  団体へのレビュー {suggestion.review.count}件
+                  この支援へのレビュー {suggestion.review.count}件
                 </p>
               </div>
             ) : (
-              <p className="text-[11px] text-gray-400 mt-1.5">
-                学校からのレビューはまだありません
-              </p>
+              <div className="mt-1.5">
+                <p className="text-[11px] text-gray-400">この支援へのレビューはまだありません</p>
+                {/* 支援単体に実績がなくても、団体自体の評価は判断材料になる */}
+                {suggestion.organizationReview.averageRating !== null && (
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    団体全体では ★{suggestion.organizationReview.averageRating.toFixed(1)}
+                    （{suggestion.organizationReview.count}件）
+                  </p>
+                )}
+              </div>
             )}
           </div>
 
@@ -106,8 +113,9 @@ export default function SuggestionCard({ suggestion, rank, onOpenDetail }: {
               onClick={onOpenDetail}
               className="w-full flex items-center justify-center gap-1 mt-1 py-1.5 rounded-lg border border-gray-200 text-[11px] font-bold text-gray-600 hover:border-yoss-yellow hover:text-yoss-yellow-dark transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yoss-yellow/40"
             >
-              {suggestion.review.count > 0
-                ? `レビューと詳細を見る（${suggestion.review.count}件）`
+              {/* 件数はモーダルで実際に表示されるレビュー（団体全体）の数に合わせる */}
+              {suggestion.organizationReview.count > 0
+                ? `レビューと詳細を見る（${suggestion.organizationReview.count}件）`
                 : '詳細を見る'}
               <ChevronRight size={13} />
             </button>
