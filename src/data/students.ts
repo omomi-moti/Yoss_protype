@@ -54,14 +54,20 @@ export function scoreLevel(total: number): 'high' | 'middle' | 'low' {
   return 'low';
 }
 
-// デモ用の児童データ（スクリーニング会議で挙がった想定）
+/*
+ * デモ用の児童データ（スクリーニング会議で挙がった想定）。
+ *
+ * 会議の検索条件が機能して見えるよう、学年・クラスを散らしてある。
+ * problems は表示専用だが、領域見出しの「スクリーニングでの該当」に使うため、
+ * スコアが付いた領域に対応するタグを最低1つ持たせている（DOMAIN_PROBLEM_TAGS 参照）。
+ */
 export const demoStudents: Student[] = [
   {
     id: 'S-001',
     grade: '5年1組',
     number: 12,
     scores: makeScores({ 経済: 4, 地域情報: 3, 学校適応: 2 }),
-    problems: ['経済的困窮', '孤立・居場所なし'],
+    problems: ['経済的困窮', '孤立・居場所なし', '欠席・遅刻'],
     notes: '遅刻多い・身だしなみが気になる・給食をたくさん食べる',
     currentSupport: 'A（担任の声かけ）',
   },
@@ -79,9 +85,126 @@ export const demoStudents: Student[] = [
     grade: '6年1組',
     number: 23,
     scores: makeScores({ 学校適応: 4, 家庭状況: 3, 福祉: 2, 地域情報: 1, 健康: 1 }),
-    problems: ['不登校傾向', '家庭でのケア負担', '孤立・居場所なし'],
+    problems: ['不登校傾向', '家庭でのケア負担', '孤立・居場所なし', '保健室頻回'],
     notes: '欠席増加・弟の世話で疲れている様子・保健室利用増',
     currentSupport: 'A+B（SC相談開始）',
+  },
+  {
+    id: 'S-004',
+    grade: '3年1組',
+    number: 5,
+    scores: makeScores({ 発達: 3, 学校適応: 2 }),
+    problems: ['発達特性', '友人トラブル'],
+    notes: '一斉指示が通りにくい・友達とのトラブルが増えている',
+    currentSupport: 'A（担任の声かけ）',
+  },
+  {
+    id: 'S-005',
+    grade: '4年2組',
+    number: 18,
+    scores: makeScores({ 健康: 4, 家庭状況: 2 }),
+    problems: ['保健室頻回', '連絡が取れない'],
+    notes: '週に数回保健室で休む・家庭への連絡がつきにくい',
+    currentSupport: 'A（養護教諭の見守り）',
+  },
+  {
+    id: 'S-006',
+    grade: '5年2組',
+    number: 3,
+    scores: makeScores({ 経済: 3, 学習: 2 }),
+    problems: ['諸費滞納', '宿題未提出'],
+    notes: '諸費の滞納が続く・宿題の提出が不安定',
+    currentSupport: 'A（担任の声かけ）',
+  },
+  {
+    id: 'S-007',
+    grade: '6年2組',
+    number: 14,
+    scores: makeScores({ 学習: 5, 学校適応: 3, 福祉: 2, 家庭状況: 2 }),
+    problems: ['学習の遅れ', '欠席・遅刻', 'SC/SSW関与', '保護者支援が必要'],
+    notes: '遅刻が増加・学年相当の学習に大きな遅れ・SSWが関与中',
+    currentSupport: 'A+B（SSW関与）',
+  },
+  {
+    id: 'S-008',
+    grade: '4年1組',
+    number: 21,
+    scores: makeScores({ 家庭状況: 4, 福祉: 3, 経済: 2 }),
+    problems: ['家庭でのケア負担', '要対協ケース', '経済的困窮'],
+    notes: '祖母の介護を手伝っている様子・要対協で共有済み',
+    currentSupport: 'A+B（要対協で共有）',
+  },
+  {
+    id: 'S-009',
+    grade: '3年1組',
+    number: 30,
+    scores: makeScores({ 地域情報: 3, 経済: 2 }),
+    problems: ['孤立・居場所なし', '経済的困窮'],
+    notes: '放課後に行き場がない・持ち物が揃わないことがある',
+    currentSupport: 'A（担任の声かけ）',
+  },
+  {
+    id: 'S-010',
+    grade: '4年3組',
+    number: 9,
+    scores: makeScores({ 発達: 4, 学校適応: 3, 学習: 2 }),
+    problems: ['発達特性', '友人トラブル', '宿題未提出'],
+    notes: '一斉指示が入りにくい・友達との距離感がつかめない・宿題が出せない',
+    currentSupport: 'A（担任の声かけ）',
+  },
+  {
+    id: 'S-011',
+    grade: '5年3組',
+    number: 25,
+    scores: makeScores({ 学校適応: 5, 地域情報: 2 }),
+    problems: ['不登校傾向', '孤立・居場所なし'],
+    notes: '2学期に入って欠席が増えた・放課後の居場所がない',
+    currentSupport: 'A+B（SC相談開始）',
+  },
+  {
+    id: 'S-012',
+    grade: '6年3組',
+    number: 2,
+    scores: makeScores({ 経済: 5, 家庭状況: 4, 福祉: 3, 学習: 2 }),
+    problems: ['経済的困窮', '家庭でのケア負担', '要対協ケース', '学習の遅れ'],
+    notes: '諸費の滞納が続く・祖父母宅と行き来している・要対協で共有済み',
+    currentSupport: 'A+B（要対協で共有）',
+  },
+  {
+    id: 'S-013',
+    grade: '3年3組',
+    number: 16,
+    scores: makeScores({ 健康: 3, 発達: 2 }),
+    problems: ['保健室頻回', '発達特性'],
+    notes: '体調不良の訴えが多い・集団活動でつまずきやすい',
+    currentSupport: 'A（養護教諭の見守り）',
+  },
+  {
+    id: 'S-014',
+    grade: '4年1組',
+    number: 11,
+    scores: makeScores({ 地域情報: 4, 学校適応: 2, 経済: 1 }),
+    problems: ['孤立・居場所なし', '欠席・遅刻', '経済的困窮'],
+    notes: '放課後に一人で過ごしている・遅刻が増えた',
+    currentSupport: 'A（担任の声かけ）',
+  },
+  {
+    id: 'S-015',
+    grade: '5年1組',
+    number: 27,
+    scores: makeScores({ 家庭状況: 5, 福祉: 4 }),
+    problems: ['連絡が取れない', 'SC/SSW関与', '家庭でのケア負担'],
+    notes: '保護者と連絡がつかない日が続く・SSWが関与中',
+    currentSupport: 'A+B（SSW関与）',
+  },
+  {
+    id: 'S-016',
+    grade: '6年2組',
+    number: 6,
+    scores: makeScores({ 学習: 3, 経済: 2 }),
+    problems: ['学習の遅れ', '諸費滞納'],
+    notes: '学習の遅れが目立つ・諸費の提出が遅れがち',
+    currentSupport: 'A（学年主任の面談）',
   },
 ];
 
