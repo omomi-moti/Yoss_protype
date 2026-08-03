@@ -1,19 +1,21 @@
 import { useMemo, useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { ChevronLeft, Sparkles } from 'lucide-react';
 import { getSuggestions, groupSuggestionsByDomain, mockRecords } from '../data/mockData';
 import { useOrganizationStore } from '../hooks/useOrganizationStore';
 import { currentSchool } from '../data/schools';
 import DomainSelector from '../components/DomainSelector';
+import MeetingSearchStep from '../components/MeetingSearchStep';
 import SuggestionCard from '../components/SuggestionCard';
 import SupportDetailModal from '../components/SupportDetailModal';
 import {
+  filterStudents,
   problemTagsForDomain,
   scoreLevel,
   scoredDomains,
   studentsByScore,
   totalScore,
 } from '../data/students';
-import type { SupportCategory } from '../types';
+import type { MeetingSearchCriteria, SupportCategory } from '../types';
 
 // スコアの水準ごとのバッジ配色
 const SCORE_STYLES = {
@@ -22,14 +24,46 @@ const SCORE_STYLES = {
   low: 'bg-gray-50 text-gray-500',
 } as const;
 
+const EMPTY_CRITERIA: MeetingSearchCriteria = {
+  grades: [],
+  classes: [],
+  minScore: '',
+  maxScore: '',
+  directions: [],
+  studentName: '',
+};
+
+/** 左の一覧の見出しに出す、適用中の条件 */
+function describeCriteria(criteria: MeetingSearchCriteria): string {
+  const parts = [
+    criteria.grades.length > 0 ? criteria.grades.map(grade => `${grade}生`).join('・') : null,
+    criteria.classes.length > 0 ? criteria.classes.join('・') : null,
+    criteria.minScore !== '' || criteria.maxScore !== ''
+      ? `${criteria.minScore || '下限なし'}〜${criteria.maxScore || '上限なし'}pt`
+      : null,
+  ].filter(Boolean);
+
+  return parts.length > 0 ? parts.join(' / ') : '条件なし（全件）';
+}
+
 export default function MeetingPage() {
   const { published } = useOrganizationStore();
-  const [selectedStudent, setSelectedStudent] = useState(studentsByScore[0]);
+  const [criteria, setCriteria] = useState<MeetingSearchCriteria>(EMPTY_CRITERIA);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [selectedDomain, setSelectedDomain] = useState<SupportCategory | null>(null);
   const [detailSupportId, setDetailSupportId] = useState<string | null>(null);
 
+  // 検索結果がそのまま左の児童一覧になる
+  const results = useMemo(() => filterStudents(studentsByScore, criteria), [criteria]);
+
+  // 未選択のとき、および結果が変わって選択中の児童が消えたときは先頭に戻す
+  const selectedStudent =
+    results.find(student => student.id === selectedStudentId) ?? results[0];
+
   // 支援候補は児童の8領域スコアと、団体が公開している支援から導出する
   const domainGroups = useMemo(() => {
+    if (!selectedStudent) return [];
     const suggestions = getSuggestions(selectedStudent.scores, published, mockRecords, currentSchool);
     return groupSuggestionsByDomain(suggestions, selectedStudent.scores);
   }, [selectedStudent, published]);
@@ -39,7 +73,8 @@ export default function MeetingPage() {
     domainGroups.find(group => group.domain === selectedDomain) ?? domainGroups[0];
 
   // その領域にスコアが付いた根拠（先生の実感と繋げるために出す）
-  const activeTags = activeGroup ? problemTagsForDomain(selectedStudent, activeGroup.domain) : [];
+  const activeTags =
+    selectedStudent && activeGroup ? problemTagsForDomain(selectedStudent, activeGroup.domain) : [];
 
   // 詳細モーダルの対象。支援と、それを提供する団体の両方が要る
   const detail = useMemo(() => {
@@ -47,6 +82,46 @@ export default function MeetingPage() {
     const organization = published.find(org => org.id === suggestion?.organizationId);
     return suggestion && organization ? { suggestion, organization } : null;
   }, [detailSupportId, activeGroup, published]);
+
+  // 検索するまでは条件の画面を出す
+  if (!hasSearched) {
+    return (
+      <MeetingSearchStep
+        criteria={criteria}
+        onChange={setCriteria}
+        onSearch={() => {
+          setHasSearched(true);
+          setSelectedStudentId(null);
+          setSelectedDomain(null);
+        }}
+      />
+    );
+  }
+
+  const backToSearch = (
+    <button
+      onClick={() => setHasSearched(false)}
+      className="flex items-center gap-1 text-xs font-bold text-gray-600 bg-white border border-gray-200 rounded-lg px-3 py-2 hover:border-yoss-yellow hover:text-yoss-yellow-dark transition-colors shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yoss-yellow/40"
+    >
+      <ChevronLeft size={14} />
+      検索条件に戻る
+    </button>
+  );
+
+  if (results.length === 0) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <h1 className="text-xl font-bold text-yoss-dark">校内チーム会議 — 支援候補表示</h1>
+          {backToSearch}
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
+          <p className="text-sm text-gray-500">条件に一致する児童がいません</p>
+          <p className="text-xs text-gray-400 mt-1">{describeCriteria(criteria)}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     /*
@@ -62,7 +137,10 @@ export default function MeetingPage() {
           {/* 「御校 N件」の基準がどの学校なのかを画面上で示す */}
           <span className="text-[10px] text-gray-400">{currentSchool}</span>
         </div>
-        <h1 className="text-xl font-bold text-yoss-dark">校内チーム会議 — 支援候補表示</h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-xl font-bold text-yoss-dark">校内チーム会議 — 支援候補表示</h1>
+          {backToSearch}
+        </div>
         <p className="text-sm text-gray-500 mt-1">
           スクリーニング結果と支援団体の登録データから、この児童に合った支援候補を自動表示します。
           <strong className="text-yoss-dark">先生の追加入力は一切ありません。</strong>
@@ -74,14 +152,19 @@ export default function MeetingPage() {
         <div className="col-span-1 overflow-y-auto">
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
-              <h3 className="text-xs font-bold text-gray-500">検討対象児童</h3>
-              <p className="text-[10px] text-gray-400">スクリーニング会議で挙がった児童</p>
+              <div className="flex items-baseline justify-between gap-2">
+                <h3 className="text-xs font-bold text-gray-500">検索結果</h3>
+                <span className="text-[10px] text-gray-400">{results.length}名</span>
+              </div>
+              <p className="text-[10px] text-gray-400 truncate" title={describeCriteria(criteria)}>
+                {describeCriteria(criteria)}
+              </p>
             </div>
-            {studentsByScore.map(student => (
+            {results.map(student => (
               <button
                 key={student.id}
                 onClick={() => {
-                  setSelectedStudent(student);
+                  setSelectedStudentId(student.id);
                   // 児童を切り替えたら、その子の最重要領域から見せる
                   setSelectedDomain(null);
                 }}
