@@ -50,6 +50,7 @@ export default function MeetingPage() {
   const { published } = useOrganizationStore();
   const [criteria, setCriteria] = useState<MeetingSearchCriteria>(EMPTY_CRITERIA);
   const [hasSearched, setHasSearched] = useState(false);
+  const [hasNoResult, setHasNoResult] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [selectedDomain, setSelectedDomain] = useState<SupportCategory | null>(null);
   const [detailSupportId, setDetailSupportId] = useState<string | null>(null);
@@ -83,13 +84,20 @@ export default function MeetingPage() {
     return suggestion && organization ? { suggestion, organization } : null;
   }, [detailSupportId, activeGroup, published]);
 
-  // 検索するまでは条件の画面を出す
+  // 検索するまでは条件の画面を出す。該当が0名のときは進めず、その場で知らせる
   if (!hasSearched) {
     return (
       <MeetingSearchStep
         criteria={criteria}
+        hasNoResult={hasNoResult}
+        onDismissNoResult={() => setHasNoResult(false)}
         onChange={setCriteria}
         onSearch={() => {
+          if (results.length === 0) {
+            setHasNoResult(true);
+            return;
+          }
+          setHasNoResult(false);
           setHasSearched(true);
           setSelectedStudentId(null);
           setSelectedDomain(null);
@@ -108,20 +116,8 @@ export default function MeetingPage() {
     </button>
   );
 
-  if (results.length === 0) {
-    return (
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <h1 className="text-xl font-bold text-yoss-dark">校内チーム会議 — 支援候補表示</h1>
-          {backToSearch}
-        </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-10 text-center">
-          <p className="text-sm text-gray-500">条件に一致する児童がいません</p>
-          <p className="text-xs text-gray-400 mt-1">{describeCriteria(criteria)}</p>
-        </div>
-      </div>
-    );
-  }
+  // 0名では検索ステップに留まるため、ここに来る時点で必ず1名以上いる
+  if (!selectedStudent) return null;
 
   return (
     /*

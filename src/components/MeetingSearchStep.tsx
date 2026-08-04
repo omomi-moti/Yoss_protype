@@ -1,14 +1,21 @@
-import { Search, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Info, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import Modal from './Modal';
 import { currentTerm, currentYear } from '../data/meeting';
 import { CLASS_OPTIONS, GRADE_OPTIONS } from '../data/students';
 import { useState } from 'react';
 import type { MeetingSearchCriteria } from '../types';
 
-// 実物の3つのモード。本プロトタイプが扱うのは校内チーム会議だけ
+/*
+ * 実物の3つのモード。デモとして押した感触を出すため、どれを押しても選択は移る。
+ * ただし本プロトタイプが中身を持つのは校内チーム会議だけで、
+ * 下の検索条件と「検索する」の遷移先は常に校内チーム会議のもの。
+ */
+const TEAM_MEETING = '校内チーム会議を実施する';
+
 const MODES = [
-  { label: 'スクリーニング会議を準備する', enabled: false },
-  { label: 'スクリーニング会議を実施する', enabled: false },
-  { label: '校内チーム会議を実施する', enabled: true },
+  'スクリーニング会議を準備する',
+  'スクリーニング会議を実施する',
+  TEAM_MEETING,
 ];
 
 const DIRECTIONS = [
@@ -65,12 +72,22 @@ function Row({ label, hint, children }: {
  * 実際に絞り込むのは学年・クラス・スクリーニング点数だけ。
  * 年度・学期・支援の方向性・生徒名は実物に項目があるため置くが、絞り込みには使わない。
  */
-export default function MeetingSearchStep({ criteria, onChange, onSearch }: {
+export default function MeetingSearchStep({
+  criteria,
+  onChange,
+  onSearch,
+  hasNoResult,
+  onDismissNoResult,
+}: {
   criteria: MeetingSearchCriteria;
   onChange: (criteria: MeetingSearchCriteria) => void;
   onSearch: () => void;
+  /** 直前の検索で0件だった。該当がないときは画面を進めずここで知らせる */
+  hasNoResult: boolean;
+  onDismissNoResult: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(true);
+  const [selectedMode, setSelectedMode] = useState(TEAM_MEETING);
 
   const update = (patch: Partial<MeetingSearchCriteria>) => onChange({ ...criteria, ...patch });
   const allClassesSelected = criteria.classes.length === CLASS_OPTIONS.length;
@@ -90,15 +107,15 @@ export default function MeetingSearchStep({ criteria, onChange, onSearch }: {
         <div className="grid grid-cols-3 gap-3">
           {MODES.map(mode => (
             <button
-              key={mode.label}
-              disabled={!mode.enabled}
-              className={`rounded-lg py-4 text-sm font-bold transition-colors ${
-                mode.enabled
-                  ? 'bg-yoss-yellow text-white'
-                  : 'bg-yoss-yellow-light/60 text-gray-300 cursor-not-allowed'
+              key={mode}
+              onClick={() => setSelectedMode(mode)}
+              className={`rounded-lg py-4 text-sm font-bold border-2 transition-colors active:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yoss-yellow/40 ${
+                mode === selectedMode
+                  ? 'bg-yoss-yellow text-white border-yoss-yellow-dark'
+                  : 'bg-yoss-yellow-light text-yoss-yellow-dark border-transparent hover:border-yoss-yellow/40'
               }`}
             >
-              {mode.label}
+              {mode}
             </button>
           ))}
         </div>
@@ -231,6 +248,27 @@ export default function MeetingSearchStep({ criteria, onChange, onSearch }: {
           上記の「検索する」ボタンを押すと、生徒の情報が表示されます。
         </p>
       </div>
+
+      {/* 該当が0名のときは画面を進めず、確認ダイアログで知らせる */}
+      {hasNoResult && (
+        <Modal onClose={onDismissNoResult} labelledBy="no-result-title" size="sm">
+          <div className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <AlertTriangle size={20} className="text-yoss-yellow-dark shrink-0" />
+              <h2 id="no-result-title" className="text-base font-bold text-yoss-dark">確認</h2>
+            </div>
+            <p className="text-sm text-gray-600">該当する生徒が見つかりません。</p>
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={onDismissNoResult}
+                className="px-8 py-2 rounded-lg bg-yoss-yellow text-white text-sm font-bold hover:bg-yoss-yellow-dark transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yoss-yellow/40"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
