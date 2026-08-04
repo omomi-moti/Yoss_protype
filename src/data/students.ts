@@ -1,4 +1,4 @@
-import type { DomainScores, ProblemTag, Student, SupportCategory } from '../types';
+import type { DomainScores, MeetingSearchCriteria, ProblemTag, Student, SupportCategory } from '../types';
 import { SUPPORT_CATEGORIES } from './organizations';
 
 /** 1領域あたりのスコア上限（バーの分母に使う） */
@@ -212,3 +212,41 @@ export const demoStudents: Student[] = [
 export const studentsByScore: Student[] = [...demoStudents].sort(
   (a, b) => totalScore(b.scores) - totalScore(a.scores)
 );
+
+/** 検索条件の選択肢。実物に合わせて、該当児童がいない学年も並べる */
+export const GRADE_OPTIONS = ['1年', '2年', '3年', '4年', '5年', '6年'];
+export const CLASS_OPTIONS = ['1組', '2組', '3組'];
+
+/** 「5年1組」を学年とクラスに分ける */
+export function parseGrade(grade: string): { grade: string; className: string } {
+  const matched = grade.match(/^(\d+年)(\d+組)$/);
+  return matched
+    ? { grade: matched[1], className: matched[2] }
+    : { grade: '', className: '' };
+}
+
+/**
+ * 会議の検索条件で児童を絞り込む。
+ * 未選択・未入力の条件は使わない（初期状態では全件が返る）。
+ */
+export function filterStudents(
+  students: Student[],
+  criteria: MeetingSearchCriteria
+): Student[] {
+  const min = Number(criteria.minScore);
+  const max = Number(criteria.maxScore);
+  const hasMin = criteria.minScore !== '' && Number.isFinite(min);
+  const hasMax = criteria.maxScore !== '' && Number.isFinite(max);
+
+  return students.filter(student => {
+    const { grade, className } = parseGrade(student.grade);
+    if (criteria.grades.length > 0 && !criteria.grades.includes(grade)) return false;
+    if (criteria.classes.length > 0 && !criteria.classes.includes(className)) return false;
+
+    const total = totalScore(student.scores);
+    if (hasMin && total < min) return false;
+    if (hasMax && total > max) return false;
+
+    return true;
+  });
+}

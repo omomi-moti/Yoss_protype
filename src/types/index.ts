@@ -173,6 +173,26 @@ export interface SupportSuggestion {
   isNew: boolean;
 }
 
+/**
+ * 校内チーム会議を始めるときの検索条件（実物の「会議の準備・実施」に合わせた項目）。
+ *
+ * directions と studentName は実物に項目があるため持つが、絞り込みには使わない。
+ * 理由は issue #30 を参照。
+ */
+export interface MeetingSearchCriteria {
+  /** 学年（'3年' 形式）。空配列は未選択＝全件 */
+  grades: string[];
+  /** クラス（'1組' 形式）。空配列は未選択＝全件 */
+  classes: string[];
+  /** スクリーニング点数の下限・上限。空文字は未指定 */
+  minScore: string;
+  maxScore: string;
+  /** 支援の方向性 A / B / C。表示のみ */
+  directions: string[];
+  /** 生徒名。表示のみ */
+  studentName: string;
+}
+
 // 画面Dの表示単位：ひとつの領域と、そこに対応できる支援候補
 export interface DomainSuggestionGroup {
   domain: SupportCategory;
