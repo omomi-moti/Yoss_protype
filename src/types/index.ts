@@ -69,7 +69,11 @@ export interface OrganizationContact {
 export interface OrganizationSupport {
   id: string;
   name: string;
-  category: SupportCategory;
+  /**
+   * この支援が効く領域。子ども食堂のように複数領域にまたがる支援があるため複数持つ。
+   * 先頭は「主たる領域」で、登録画面（画面A）でどの領域の下に並ぶかを決める。
+   */
+  categories: SupportCategory[];
   description: string;
   targetGrades: string;
   cost: string;
@@ -136,7 +140,7 @@ export interface SupportRecord {
   supportName: string;
   organizationId: string;
   organizationName: string;
-  category: SupportCategory;
+  categories: SupportCategory[];
   problemTags: ProblemTag[];
   schoolName: string;
   date: string;
@@ -155,9 +159,14 @@ export interface SupportSuggestion {
   capacity: string;
   frequency: string;
   howToUse: string;
-  /** この支援が対応する領域。児童のスコアが1以上の領域だけが候補になる */
-  category: SupportCategory;
-  /** 児童の category 領域のスコア。表示順の第1キー */
+  /** この支援が対応する領域（登録されたすべて） */
+  categories: SupportCategory[];
+  /**
+   * categories のうち、この児童のスコアが1以上だった領域。スコアの高い順。
+   * 支援は合致した領域すべての候補に出る。
+   */
+  matchedDomains: SupportCategory[];
+  /** matchedDomains のスコア合計。表示順の第1キー */
   matchedScore: number;
   organizationId: string;
   organizationName: string;

@@ -1,4 +1,4 @@
-import type { Organization, OrganizationSupport, SchoolReview } from '../types';
+import type { Organization, OrganizationSupport, SchoolReview, SupportCategory } from '../types';
 import { deriveCategories, organizations } from './organizations';
 
 /**
@@ -68,19 +68,35 @@ function migrateReview(review: SchoolReview, supports: OrganizationSupport[]): S
 }
 
 /**
+ * 旧形式の支援（対応領域を category に1つだけ持っていた）を categories に寄せる。
+ * 旧形式でも category は必須だったため、実際には空配列にはならない。
+ */
+function migrateCategories(support: OrganizationSupport): SupportCategory[] {
+  if (support.categories) return support.categories;
+
+  const legacy = (support as OrganizationSupport & { category?: SupportCategory }).category;
+  return legacy ? [legacy] : [];
+}
+
+/**
  * 保存済みのデータに、あとから追加・変更した項目を合わせる。
  * localStorage には過去のバージョンの形のまま残っているため、欠けている項目を埋めないと
  * 入力欄が uncontrolled になったり、レビューが支援に紐づかなくなる。
  */
 function migrate(org: Organization): Organization {
+  const supports = org.supports.map(support => ({
+    ...support,
+    frequency: support.frequency ?? '',
+    howToUse: support.howToUse ?? '',
+    categories: migrateCategories(support),
+  }));
+
   return {
     ...org,
-    supports: org.supports.map(support => ({
-      ...support,
-      frequency: support.frequency ?? '',
-      howToUse: support.howToUse ?? '',
-    })),
-    reviews: org.reviews.map(review => migrateReview(review, org.supports)),
+    supports,
+    // 支援の領域が変わるので、団体の対応領域も導出し直す
+    categories: deriveCategories(supports),
+    reviews: org.reviews.map(review => migrateReview(review, supports)),
   };
 }
 

@@ -1,7 +1,7 @@
 import { Phone, Mail, Globe, ChevronRight } from 'lucide-react';
 import StarRating from './StarRating';
 import SupportConditions from './SupportConditions';
-import type { SupportSuggestion } from '../types';
+import type { SupportCategory, SupportSuggestion } from '../types';
 
 /**
  * 校内チーム会議（画面D）で表示する支援候補のカード。
@@ -13,12 +13,16 @@ import type { SupportSuggestion } from '../types';
  * 連絡先は折りたたまず常に出す。開閉はレイアウトを伸ばしてスクロールを強いる割に、
  * 中身が電話番号とURLだけで量が少なく、操作コストのほうが大きいため。
  */
-export default function SuggestionCard({ suggestion, rank, onOpenDetail }: {
+export default function SuggestionCard({ suggestion, rank, activeDomain, onOpenDetail }: {
   suggestion: SupportSuggestion;
   /** 領域内の表示順（レビュー評価が高い順）。縦スキャンの起点になる */
   rank: number;
+  /** いま表示している領域。カードでは、それ以外に効く領域だけを添える */
+  activeDomain: SupportCategory;
   onOpenDetail: () => void;
 }) {
+  const otherDomains = suggestion.matchedDomains.filter(domain => domain !== activeDomain);
+
   // 実績の有無は枠線の実線／破線で表す
   return (
     // h-full で行内の他のカードと高さを揃える（グリッドが行の高さを最も高いカードに合わせる）
@@ -69,6 +73,12 @@ export default function SuggestionCard({ suggestion, rank, onOpenDetail }: {
               <span className="mx-1.5">·</span>
               {suggestion.organizationType}
             </p>
+            {/* 一度に複数の困りごとをカバーできる支援は上位に来る。その根拠を示す */}
+            {otherDomains.length > 0 && (
+              <p className="text-[11px] text-yoss-yellow-dark mt-1">
+                この児童の {otherDomains.join('・')} にも対応
+              </p>
+            )}
           </div>
 
           {/* ③利用条件 */}

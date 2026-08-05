@@ -8,7 +8,7 @@ const supportIndex = new Map(getAllSupports().map(s => [s.id, s]));
 // 支援メニューの情報（団体名・領域）は organizations.ts から引くため、実績側では持たない
 type RecordFields = Omit<
   SupportRecord,
-  'id' | 'supportId' | 'supportName' | 'organizationId' | 'organizationName' | 'category'
+  'id' | 'supportId' | 'supportName' | 'organizationId' | 'organizationName' | 'categories'
 >;
 
 function buildRecords(
@@ -26,7 +26,7 @@ function buildRecords(
     supportName: support.name,
     organizationId: support.organizationId,
     organizationName: support.organizationName,
-    category: support.category,
+    categories: support.categories,
     ...fields(i),
   }));
 }
@@ -101,8 +101,11 @@ export const mockRecords: SupportRecord[] = [
 
 /**
  * 支援候補の表示順。
- * ①児童の必要度が高い領域の支援を優先（領域スコアの降順）
- * ②同じ領域スコアなら、その支援へのレビュー評価が高い順。レビューがない支援は末尾
+ * ①児童の必要度が高い支援を優先（合致した領域のスコア合計の降順）
+ * ②同じスコアなら、その支援へのレビュー評価が高い順。レビューがない支援は末尾
+ *
+ * 複数領域に効く支援は合計が大きくなるため、どの領域の一覧でも上位に来る。
+ * 「この子の困りごとを一度に複数カバーできる」ことを優先する、という順序付け。
  */
 function compareSuggestions(a: SupportSuggestion, b: SupportSuggestion): number {
   if (a.matchedScore !== b.matchedScore) return b.matchedScore - a.matchedScore;
@@ -118,6 +121,7 @@ function compareSuggestions(a: SupportSuggestion, b: SupportSuggestion): number 
 /**
  * 支援候補を領域ごとにまとめる。
  * 領域の順序は児童のスコアが高い順、領域内の順序は getSuggestions() の並びを引き継ぐ。
+ * 複数領域に効く支援は、合致した領域それぞれの一覧に出る。
  */
 export function groupSuggestionsByDomain(
   suggestions: SupportSuggestion[],
@@ -127,7 +131,7 @@ export function groupSuggestionsByDomain(
     .map(domain => ({
       domain,
       score: scores[domain],
-      suggestions: suggestions.filter(suggestion => suggestion.category === domain),
+      suggestions: suggestions.filter(suggestion => suggestion.matchedDomains.includes(domain)),
     }))
     .filter(group => group.suggestions.length > 0);
 }
@@ -137,6 +141,7 @@ export function groupSuggestionsByDomain(
  *
  * 児童のスコアが1以上の領域を「支援が必要な領域」とし、その領域の支援を
  * 「対応可能」（enabled）として登録している団体だけを候補にする。
+ * 支援が複数領域に対応している場合、ひとつでも合致すれば候補になる。
  */
 export function getSuggestions(
   scores: DomainScores,
@@ -151,8 +156,16 @@ export function getSuggestions(
       const organizationReview = summarizeReviews(org.reviews);
 
       return org.supports
-        .filter(support => support.enabled && neededDomains.has(support.category))
-        .map(support => {
+        .filter(support => support.enabled)
+        .map(support => ({
+          support,
+          // スコアの高い領域から並べる（カードに出す順序でもある）
+          matchedDomains: support.categories
+            .filter(category => neededDomains.has(category))
+            .sort((a, b) => scores[b] - scores[a]),
+        }))
+        .filter(({ matchedDomains }) => matchedDomains.length > 0)
+        .map(({ support, matchedDomains }) => {
           const review = summarizeReviewsForSupport(org.reviews, support.id);
           const relatedRecords = records.filter(rec => rec.supportId === support.id);
           const schoolRecords = relatedRecords.filter(rec => rec.schoolName === schoolName);
@@ -167,8 +180,9 @@ export function getSuggestions(
             capacity: support.capacity,
             frequency: support.frequency,
             howToUse: support.howToUse,
-            category: support.category,
-            matchedScore: scores[support.category],
+            categories: support.categories,
+            matchedDomains,
+            matchedScore: matchedDomains.reduce((sum, domain) => sum + scores[domain], 0),
             organizationId: org.id,
             organizationName: org.name,
             organizationType: org.type,

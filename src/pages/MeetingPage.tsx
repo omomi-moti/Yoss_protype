@@ -282,6 +282,7 @@ export default function MeetingPage() {
                         key={suggestion.supportId}
                         suggestion={suggestion}
                         rank={index + 1}
+                        activeDomain={activeGroup.domain}
                         onOpenDetail={() => setDetailSupportId(suggestion.supportId)}
                       />
                     ))}
