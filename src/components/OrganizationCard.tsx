@@ -130,10 +130,15 @@ export default function OrganizationCard({ org, isExpanded, onToggle }: {
             <div className="grid grid-cols-2 gap-2">
               {enabledSupports.map(s => (
                 <div key={s.id} className="bg-gray-50 rounded-lg p-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-yoss-yellow-light text-yoss-yellow-dark">
-                      {s.category}
-                    </span>
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    {s.categories.map(category => (
+                      <span
+                        key={category}
+                        className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-yoss-yellow-light text-yoss-yellow-dark"
+                      >
+                        {category}
+                      </span>
+                    ))}
                     <span className="text-xs font-bold text-yoss-dark">{s.name}</span>
                   </div>
                   <p className="text-[10px] text-gray-500">

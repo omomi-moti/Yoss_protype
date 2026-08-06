@@ -38,9 +38,15 @@ export default function SupportDetailModal({ suggestion, organization, studentTa
             <h2 id="support-detail-title" className="text-base font-bold text-yoss-dark">
               {suggestion.supportName}
             </h2>
-            <span className="text-[10px] font-bold bg-yoss-yellow-light text-yoss-yellow-dark px-2 py-0.5 rounded">
-              {suggestion.category}
-            </span>
+            {/* この児童のどの領域に効く支援なのか。合致しなかった領域は会議の判断に要らない */}
+            {suggestion.matchedDomains.map(domain => (
+              <span
+                key={domain}
+                className="text-[10px] font-bold bg-yoss-yellow-light text-yoss-yellow-dark px-2 py-0.5 rounded"
+              >
+                {domain}
+              </span>
+            ))}
           </div>
           <p className="text-[11px] text-gray-500 mt-1">
             {organization.name}

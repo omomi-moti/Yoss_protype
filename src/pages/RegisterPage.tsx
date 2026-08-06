@@ -60,7 +60,7 @@ export default function RegisterPage() {
 
   // 学校に表示される対応領域は、保存済みの支援から導出される
   const savedSupports = profile.supports.filter(s => s.enabled && !unsavedIds.has(s.id));
-  const activeCategories = [...new Set(savedSupports.map(s => s.category))];
+  const activeCategories = [...new Set(savedSupports.flatMap(s => s.categories))];
   const enabledTotal = savedSupports.length;
 
   const toggle = (id: string) => {
@@ -124,10 +124,24 @@ export default function RegisterPage() {
     discardDraft(id);
   };
 
+  // 編集中の支援の対応領域を1つ増減する。主たる領域（先頭）を外すと別のセクションに移る
+  const toggleDraftCategory = (id: string, category: SupportCategory) => {
+    setDrafts(prev => {
+      const draft = prev[id];
+      if (!draft) return prev;
+
+      const categories = draft.categories.includes(category)
+        ? draft.categories.filter(c => c !== category)
+        : [...draft.categories, category];
+
+      return { ...prev, [id]: { ...draft, categories } };
+    });
+  };
+
   const addSupport = (category: SupportCategory) => {
     const id = `s-new-${nextSupportId.current++}`;
     const support: OrganizationSupport = {
-      id, name: '', category, description: '', targetGrades: '', cost: '', capacity: '',
+      id, name: '', categories: [category], description: '', targetGrades: '', cost: '', capacity: '',
       frequency: '', howToUse: '', enabled: true,
     };
     setProfile(prev => ({ ...prev, supports: [...prev.supports, support] }));
@@ -338,10 +352,18 @@ export default function RegisterPage() {
       {/* 対応可能な支援（8領域すべてを表示） */}
       <div className="space-y-4">
         {SUPPORT_CATEGORIES.map(category => {
-          const categorySupports = profile.supports.filter(s => s.category === category);
-          // 件数は保存済みのものだけ数える
-          const savedCount = categorySupports.filter(s => !unsavedIds.has(s.id)).length;
-          const enabledCount = categorySupports.filter(s => s.enabled && !unsavedIds.has(s.id)).length;
+          // 複数領域に対応する支援は、主たる領域（categories の先頭）の下にだけ置く。
+          // 対応するすべての領域に並べると同じ支援が画面に何度も出てしまうため。
+          const categorySupports = profile.supports.filter(s => s.categories[0] === category);
+          // 件数は「この領域に対応する支援」で数える（保存済みのみ）。主たる領域が別の支援も
+          // 学校にはこの領域の候補として出るため、一覧に並ばないからといって未登録ではない
+          const covering = profile.supports.filter(
+            s => s.categories.includes(category) && !unsavedIds.has(s.id)
+          );
+          const savedCount = covering.length;
+          const enabledCount = covering.filter(s => s.enabled).length;
+          // この一覧には並ばないが、この領域に対応している支援
+          const fromOtherSections = covering.filter(s => s.categories[0] !== category && s.enabled);
 
           return (
             <div key={category} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -400,6 +422,12 @@ export default function RegisterPage() {
                             保存しました
                           </span>
                         )}
+                        {/* 主たる領域はセクション見出しに出ているので、それ以外だけを添える */}
+                        {support.categories.length > 1 && (
+                          <span className="text-[9px] text-gray-400 shrink-0">
+                            ＋{support.categories.slice(1).join('・')}
+                          </span>
+                        )}
                         <span className="text-xs text-gray-400 truncate">{support.description}</span>
                       </button>
 
@@ -439,6 +467,32 @@ export default function RegisterPage() {
                             />
                           </div>
                         </div>
+                        {/* 対応する領域（複数可）。校内チーム会議での候補の出方が決まる */}
+                        <div className="mb-3">
+                          <label className="text-[10px] text-gray-400 font-bold">対応する領域</label>
+                          <div className="flex flex-wrap gap-1.5 mt-1">
+                            {SUPPORT_CATEGORIES.map(option => {
+                              const isSelected = draft.categories.includes(option);
+                              return (
+                                <button
+                                  key={option}
+                                  onClick={() => toggleDraftCategory(support.id, option)}
+                                  className={`text-[10px] px-2.5 py-1 rounded-md border transition-colors ${
+                                    isSelected
+                                      ? 'bg-yoss-yellow-light border-yoss-yellow text-yoss-yellow-dark font-bold'
+                                      : 'bg-white border-gray-200 text-gray-400 hover:border-gray-300'
+                                  }`}
+                                >
+                                  {option}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <p className="text-[10px] text-gray-400 mt-1">
+                            複数選べます。選んだ領域それぞれの支援候補として、校内チーム会議に表示されます。
+                          </p>
+                        </div>
+
                         <div className="grid grid-cols-3 gap-3">
                           {([
                             { key: 'targetGrades', label: '対象学年', placeholder: '例）小4〜中3' },
@@ -464,7 +518,7 @@ export default function RegisterPage() {
                         <div className="flex items-center gap-2 mt-3">
                           <button
                             onClick={() => saveDraft(support.id)}
-                            disabled={draft.name.trim() === ''}
+                            disabled={draft.name.trim() === '' || draft.categories.length === 0}
                             className="flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-md bg-yoss-yellow text-white hover:bg-yoss-yellow-dark transition-colors disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
                           >
                             <Check size={13} strokeWidth={3} />
@@ -476,9 +530,11 @@ export default function RegisterPage() {
                           >
                             キャンセル
                           </button>
-                          {draft.name.trim() === '' && (
+                          {draft.name.trim() === '' ? (
                             <span className="text-[10px] text-gray-400">支援の名称を入力すると保存できます</span>
-                          )}
+                          ) : draft.categories.length === 0 ? (
+                            <span className="text-[10px] text-gray-400">対応する領域を1つ以上選ぶと保存できます</span>
+                          ) : null}
                         </div>
 
                         <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-100">
@@ -498,6 +554,14 @@ export default function RegisterPage() {
                   </div>
                   );
                 })}
+
+                {/* 主たる領域が別のため、この一覧には並ばない支援 */}
+                {fromOtherSections.length > 0 && (
+                  <p className="px-5 py-2.5 text-[10px] text-gray-400 leading-relaxed">
+                    {fromOtherSections.map(s => s.name).join('・')} も{category}に対応しています
+                    （{fromOtherSections.map(s => s.categories[0]).join('・')}の欄で編集できます）
+                  </p>
+                )}
 
                 {/* Add support */}
                 <button
