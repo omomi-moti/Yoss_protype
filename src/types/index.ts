@@ -125,14 +125,6 @@ export interface Organization {
   isMine: boolean;
 }
 
-// 支援メニューに提供元団体の情報を付与したもの（横断検索用）
-export interface SupportWithOrg extends OrganizationSupport {
-  organizationId: string;
-  organizationName: string;
-  organizationType: OrganizationType;
-  contact: OrganizationContact;
-}
-
 // 校内チーム会議で表示する支援候補
 export interface SupportSuggestion {
   supportId: string;

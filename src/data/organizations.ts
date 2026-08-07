@@ -1,4 +1,4 @@
-import type { Organization, OrganizationSupport, OrganizationType, ProblemTag, RelevantReview, ReviewSummary, SchoolReview, SupportCategory, SupportWithOrg } from '../types';
+import type { Organization, OrganizationSupport, OrganizationType, ProblemTag, RelevantReview, ReviewSummary, SchoolReview, SupportCategory } from '../types';
 
 // 画面Cのフィルタ用（YOSS 8領域の表示順）
 export const SUPPORT_CATEGORIES: SupportCategory[] = [
@@ -301,16 +301,3 @@ export const organizations: Organization[] = seeds.map(org => ({
   ...org,
   categories: deriveCategories(org.supports),
 }));
-
-// 画面D（校内チーム会議）向けに、支援メニューを団体横断でフラット化する
-export function getAllSupports(orgs: Organization[] = organizations): SupportWithOrg[] {
-  return orgs.flatMap(org =>
-    org.supports.map(support => ({
-      ...support,
-      organizationId: org.id,
-      organizationName: org.name,
-      organizationType: org.type,
-      contact: org.contact,
-    }))
-  );
-}

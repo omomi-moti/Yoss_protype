@@ -62,7 +62,7 @@ export default function SuggestionCard({ suggestion, rank, activeDomain, onOpenD
             ) : (
               <div className="mt-1.5">
                 <p className="text-[11px] text-gray-400">利用した学校からのレビューはまだありません</p>
-                {/* 支援単体に実績がなくても、団体自体の評価は判断材料になる */}
+                {/* この支援にレビューがなくても、団体自体の評価は判断材料になる */}
                 {suggestion.organizationReview.averageRating !== null && (
                   <p className="text-[11px] text-gray-400 mt-0.5">
                     団体全体では ★{suggestion.organizationReview.averageRating.toFixed(1)}
