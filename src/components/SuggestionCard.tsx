@@ -7,8 +7,11 @@ import type { SupportCategory, SupportSuggestion } from '../types';
  * 校内チーム会議（画面D）で表示する支援候補のカード。
  *
  * 視線が左右に往復しないよう、判断に必要な情報（支援名・評価）は左揃えの1本の縦線に置く。
- * 内容は「名前と評価」「何をしてくれるか」「利用条件」「実績と連絡先」の4ブロックに分け、
+ * 内容は「名前と評価」「何をしてくれるか」「利用条件」「連絡先」の4ブロックに分け、
  * ブロック間の余白をブロック内の行間より大きく取って塊として読めるようにする。
+ *
+ * 利用実績はレビューと同じデータから出すため「名前と評価」に含める。別々に置くと、
+ * 「利用実績なし」なのに星が付く状態が起きる（issue #22）。
  *
  * 連絡先は折りたたまず常に出す。開閉はレイアウトを伸ばしてスクロールを強いる割に、
  * 中身が電話番号とURLだけで量が少なく、操作コストのほうが大きいため。
@@ -23,11 +26,11 @@ export default function SuggestionCard({ suggestion, rank, activeDomain, onOpenD
 }) {
   const otherDomains = suggestion.matchedDomains.filter(domain => domain !== activeDomain);
 
-  // 実績の有無は枠線の実線／破線で表す
+  // まだどの学校からも利用の報告がない支援は破線で表す（一覧を見渡して分かるように）
   return (
     // h-full で行内の他のカードと高さを揃える（グリッドが行の高さを最も高いカードに合わせる）
     <div className={`bg-white rounded-xl border border-gray-200 p-5 h-full transition-colors hover:border-yoss-yellow/60 ${
-      suggestion.isNew ? 'border-dashed' : ''
+      suggestion.review.count === 0 ? 'border-dashed' : ''
     }`}>
       <div className="flex gap-4 h-full">
         {/* 行頭のアンカー：領域内の順位 */}
@@ -47,13 +50,18 @@ export default function SuggestionCard({ suggestion, rank, activeDomain, onOpenD
                     {suggestion.review.averageRating.toFixed(1)}
                   </span>
                 </div>
+                {/*
+                  レビューを書けるのは使った学校なので、件数がそのまま利用実績になる。
+                  御校の分を添えるのは「自校で使ったことがあるか」が会議での判断を変えるため。
+                */}
                 <p className="text-[11px] text-gray-400 mt-0.5">
                   この支援へのレビュー {suggestion.review.count}件
+                  {suggestion.schoolReviewCount > 0 && `（うち御校 ${suggestion.schoolReviewCount}件）`}
                 </p>
               </div>
             ) : (
               <div className="mt-1.5">
-                <p className="text-[11px] text-gray-400">この支援へのレビューはまだありません</p>
+                <p className="text-[11px] text-gray-400">利用した学校からのレビューはまだありません</p>
                 {/* 支援単体に実績がなくても、団体自体の評価は判断材料になる */}
                 {suggestion.organizationReview.averageRating !== null && (
                   <p className="text-[11px] text-gray-400 mt-0.5">
@@ -84,17 +92,8 @@ export default function SuggestionCard({ suggestion, rank, activeDomain, onOpenD
           {/* ③利用条件 */}
           <SupportConditions support={suggestion} />
 
-          {/* ④実績と連絡先。mt-auto でカード下端に揃え、行内のカードで位置が一致するようにする */}
+          {/* ④連絡先。mt-auto でカード下端に揃え、行内のカードで位置が一致するようにする */}
           <div className="space-y-1.5 mt-auto">
-            {suggestion.isNew ? (
-              <p className="text-[11px] text-gray-400">市内の利用実績なし</p>
-            ) : (
-              <div className="flex items-center gap-3 text-[11px] text-gray-500">
-                <span className="whitespace-nowrap">市内 <strong className="text-yoss-dark">{suggestion.cityWideCount}</strong>件</span>
-                <span className="whitespace-nowrap">御校 <strong className="text-yoss-dark">{suggestion.schoolCount}</strong>件</span>
-                <span className="whitespace-nowrap">継続率 <strong className="text-yoss-green">{suggestion.continuationRate}%</strong></span>
-              </div>
-            )}
             <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-600">
               {suggestion.contact.tel && (
                 <span className="flex items-center gap-1 whitespace-nowrap">

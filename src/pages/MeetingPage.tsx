@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ChevronLeft, Sparkles } from 'lucide-react';
-import { getSuggestions, groupSuggestionsByDomain, mockRecords } from '../data/mockData';
+import { getSuggestions, groupSuggestionsByDomain } from '../data/mockData';
 import { useOrganizationStore } from '../hooks/useOrganizationStore';
 import { currentSchool } from '../data/schools';
 import DomainSelector from '../components/DomainSelector';
@@ -65,7 +65,7 @@ export default function MeetingPage() {
   // 支援候補は児童の8領域スコアと、団体が公開している支援から導出する
   const domainGroups = useMemo(() => {
     if (!selectedStudent) return [];
-    const suggestions = getSuggestions(selectedStudent.scores, published, mockRecords, currentSchool);
+    const suggestions = getSuggestions(selectedStudent.scores, published, currentSchool);
     return groupSuggestionsByDomain(suggestions, selectedStudent.scores);
   }, [selectedStudent, published]);
 

@@ -255,6 +255,20 @@ export function summarizeReviewsForSupport(
   return summarizeReviews(reviews.filter(review => review.supportId === supportId));
 }
 
+/**
+ * 特定の支援メニューへのレビューのうち、指定した学校が書いた件数。
+ * レビューを書けるのはその支援を使った学校なので、自校での利用実績としても読める。
+ */
+export function countSchoolReviewsForSupport(
+  reviews: SchoolReview[],
+  supportId: string,
+  schoolName: string
+): number {
+  return reviews.filter(
+    review => review.supportId === supportId && review.schoolName === schoolName
+  ).length;
+}
+
 /** レビューの対象になった支援メニューの名前。登録から消えた支援も表示できるようにする */
 export function supportNameOf(supports: OrganizationSupport[], supportId: string): string {
   return supports.find(support => support.id === supportId)?.name ?? '（削除された支援）';
