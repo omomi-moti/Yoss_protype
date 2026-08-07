@@ -26,11 +26,14 @@ export default function SuggestionCard({ suggestion, rank, activeDomain, onOpenD
 }) {
   const otherDomains = suggestion.matchedDomains.filter(domain => domain !== activeDomain);
 
-  // まだどの学校からも利用の報告がない支援は破線で表す（一覧を見渡して分かるように）
+  // null＝まだどの学校からもレビューがない。枠線と評価の出し分けは同じ条件で動かす
+  const rating = suggestion.review.averageRating;
+
   return (
     // h-full で行内の他のカードと高さを揃える（グリッドが行の高さを最も高いカードに合わせる）
     <div className={`bg-white rounded-xl border border-gray-200 p-5 h-full transition-colors hover:border-yoss-yellow/60 ${
-      suggestion.review.count === 0 ? 'border-dashed' : ''
+      // 利用の報告がない支援は破線で表す（一覧を見渡して分かるように）
+      rating === null ? 'border-dashed' : ''
     }`}>
       <div className="flex gap-4 h-full">
         {/* 行頭のアンカー：領域内の順位 */}
@@ -42,12 +45,12 @@ export default function SuggestionCard({ suggestion, rank, activeDomain, onOpenD
             <h5 className="text-base font-bold text-yoss-dark leading-snug">
               {suggestion.supportName}
             </h5>
-            {suggestion.review.averageRating !== null ? (
+            {rating !== null ? (
               <div className="mt-1.5">
                 <div className="flex items-center gap-2">
-                  <StarRating rating={Math.round(suggestion.review.averageRating)} size={13} />
+                  <StarRating rating={Math.round(rating)} size={13} />
                   <span className="text-sm font-bold text-yoss-dark">
-                    {suggestion.review.averageRating.toFixed(1)}
+                    {rating.toFixed(1)}
                   </span>
                 </div>
                 {/*
