@@ -125,29 +125,6 @@ export interface Organization {
   isMine: boolean;
 }
 
-// 支援メニューに提供元団体の情報を付与したもの（横断検索用）
-export interface SupportWithOrg extends OrganizationSupport {
-  organizationId: string;
-  organizationName: string;
-  organizationType: OrganizationType;
-  contact: OrganizationContact;
-}
-
-// 支援実績（ダミーデータ用）
-export interface SupportRecord {
-  id: string;
-  supportId: string;
-  supportName: string;
-  organizationId: string;
-  organizationName: string;
-  categories: SupportCategory[];
-  problemTags: ProblemTag[];
-  schoolName: string;
-  date: string;
-  continuationStatus: '継続中' | '終了' | '中断';
-  improved: boolean;
-}
-
 // 校内チーム会議で表示する支援候補
 export interface SupportSuggestion {
   supportId: string;
@@ -172,14 +149,15 @@ export interface SupportSuggestion {
   organizationName: string;
   organizationType: OrganizationType;
   contact: OrganizationContact;
-  /** この支援へのレビューの集計。表示順の第2キー */
+  /**
+   * この支援へのレビューの集計。表示順の第2キー。
+   * レビューは利用した学校しか書けないため、利用実績の代わりでもある（issue #22）。
+   */
   review: ReviewSummary;
   /** 提供団体全体へのレビューの集計。支援単体の件数が少ないときの補足に使う */
   organizationReview: ReviewSummary;
-  cityWideCount: number;
-  schoolCount: number;
-  continuationRate: number | null;
-  isNew: boolean;
+  /** review.count のうち、ログイン中の学校が書いた件数。自校で使ったことがあるかを示す */
+  schoolReviewCount: number;
 }
 
 /**

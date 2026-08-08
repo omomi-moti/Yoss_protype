@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { ChevronLeft, Sparkles } from 'lucide-react';
-import { getSuggestions, groupSuggestionsByDomain, mockRecords } from '../data/mockData';
+import { getSuggestions, groupSuggestionsByDomain } from '../data/mockData';
 import { useOrganizationStore } from '../hooks/useOrganizationStore';
 import { currentSchool } from '../data/schools';
 import DomainSelector from '../components/DomainSelector';
@@ -65,7 +65,7 @@ export default function MeetingPage() {
   // 支援候補は児童の8領域スコアと、団体が公開している支援から導出する
   const domainGroups = useMemo(() => {
     if (!selectedStudent) return [];
-    const suggestions = getSuggestions(selectedStudent.scores, published, mockRecords, currentSchool);
+    const suggestions = getSuggestions(selectedStudent.scores, published, currentSchool);
     return groupSuggestionsByDomain(suggestions, selectedStudent.scores);
   }, [selectedStudent, published]);
 
@@ -130,7 +130,7 @@ export default function MeetingPage() {
       <div className="mb-4 shrink-0">
         <div className="flex items-center gap-2 mb-1">
           <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-green-50 text-green-600">学校向け</span>
-          {/* 「御校 N件」の基準がどの学校なのかを画面上で示す */}
+          {/* 「うち御校 N件」の基準がどの学校なのかを画面上で示す */}
           <span className="text-[10px] text-gray-400">{currentSchool}</span>
         </div>
         <div className="flex items-start justify-between gap-4">

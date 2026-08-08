@@ -40,7 +40,7 @@ npx tsc -b --noEmit    # 型チェックだけ
 - `types/index.ts` … 型はすべてここ。新しい型を作る前に必ず既存を確認する
 - `data/organizations.ts` … 支援団体のシードと、団体まわりの導出関数
 - `data/students.ts` … 児童のデモデータと、8領域スコアの導出関数
-- `data/mockData.ts` … 支援実績のダミーと、画面Dの候補を組み立てる `getSuggestions()`
+- `data/mockData.ts` … 画面Dの候補を組み立てる `getSuggestions()` と、領域ごとのグループ化
 - `data/schools.ts` … 学校名と「ログイン中の学校」
 - `data/organizationStore.ts` … 団体データの永続化（localStorage）
 - `hooks/useOrganizationStore.ts` … 上記を `useSyncExternalStore` で購読する

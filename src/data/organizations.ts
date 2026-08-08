@@ -1,4 +1,4 @@
-import type { Organization, OrganizationSupport, OrganizationType, ProblemTag, RelevantReview, ReviewSummary, SchoolReview, SupportCategory, SupportWithOrg } from '../types';
+import type { Organization, OrganizationSupport, OrganizationType, ProblemTag, RelevantReview, ReviewSummary, SchoolReview, SupportCategory } from '../types';
 
 // 画面Cのフィルタ用（YOSS 8領域の表示順）
 export const SUPPORT_CATEGORIES: SupportCategory[] = [
@@ -255,6 +255,20 @@ export function summarizeReviewsForSupport(
   return summarizeReviews(reviews.filter(review => review.supportId === supportId));
 }
 
+/**
+ * 特定の支援メニューへのレビューのうち、指定した学校が書いた件数。
+ * レビューを書けるのはその支援を使った学校なので、自校での利用実績としても読める。
+ */
+export function countSchoolReviewsForSupport(
+  reviews: SchoolReview[],
+  supportId: string,
+  schoolName: string
+): number {
+  return reviews.filter(
+    review => review.supportId === supportId && review.schoolName === schoolName
+  ).length;
+}
+
 /** レビューの対象になった支援メニューの名前。登録から消えた支援も表示できるようにする */
 export function supportNameOf(supports: OrganizationSupport[], supportId: string): string {
   return supports.find(support => support.id === supportId)?.name ?? '（削除された支援）';
@@ -287,16 +301,3 @@ export const organizations: Organization[] = seeds.map(org => ({
   ...org,
   categories: deriveCategories(org.supports),
 }));
-
-// 画面D（校内チーム会議）向けに、支援メニューを団体横断でフラット化する
-export function getAllSupports(orgs: Organization[] = organizations): SupportWithOrg[] {
-  return orgs.flatMap(org =>
-    org.supports.map(support => ({
-      ...support,
-      organizationId: org.id,
-      organizationName: org.name,
-      organizationType: org.type,
-      contact: org.contact,
-    }))
-  );
-}
