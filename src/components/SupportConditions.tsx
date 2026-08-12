@@ -30,7 +30,7 @@ export default function SupportConditions({ support, full = false }: {
   ];
 
   return (
-    <dl className="bg-gray-50 rounded-lg px-3 py-2 space-y-0.5">
+    <dl className="bg-gray-50 rounded-lg px-3 py-1.5 space-y-0.5">
       {items.map(item => (
         <div key={item.label} className="flex gap-3 text-xs">
           <dt className={`text-gray-400 shrink-0 ${full ? 'w-16' : 'w-7'}`}>{item.label}</dt>

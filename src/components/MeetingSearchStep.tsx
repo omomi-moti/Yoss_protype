@@ -1,6 +1,6 @@
 import { Search, Info, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
 import Modal from './Modal';
-import { currentTerm, currentYear } from '../data/meeting';
+import { DIRECTIONS, currentTerm, currentYear } from '../data/meeting';
 import { CLASS_OPTIONS, GRADE_OPTIONS } from '../data/students';
 import { useState } from 'react';
 import type { MeetingSearchCriteria } from '../types';
@@ -16,12 +16,6 @@ const MODES = [
   'スクリーニング会議を準備する',
   'スクリーニング会議を実施する',
   TEAM_MEETING,
-];
-
-const DIRECTIONS = [
-  { key: 'A', label: 'A 教職員関与' },
-  { key: 'B', label: 'B 地域資源の活用' },
-  { key: 'C', label: 'C 専門機関の活用' },
 ];
 
 /** 選択肢のトグル */

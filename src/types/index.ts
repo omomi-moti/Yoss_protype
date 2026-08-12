@@ -31,6 +31,36 @@ export type ProblemTag =
 // 8領域それぞれのスコア（該当なしは0）
 export type DomainScores = Record<SupportCategory, number>;
 
+// スクリーニングを入力する校内の担当
+export type StaffRole =
+  | '担任'
+  | '特別支援'
+  | '養護'
+  | '事務'
+  | 'SC・SSW'
+  | '管理職・生指';
+
+/** スクリーニングの1項目。担当の自由記述・AI判定・日常の対応記録の元になる */
+export interface ScreeningEntry {
+  role: StaffRole;
+  /** 項目名（タブ④の行） */
+  item: string;
+  /** 担当が入力した気になる情報（タブ①のカード本文） */
+  note: string;
+  /** 入力があった項目にだけ付く */
+  judgement: '経過観察' | '要注意';
+}
+
+/** 日常の対応記録（タブ③・参照専用） */
+export interface SupportRecord {
+  date: string;
+  role: StaffRole;
+  text: string;
+}
+
+// 支援の方向性 A / B / C
+export type SupportDirection = 'A' | 'B' | 'C';
+
 // 校内チーム会議で検討する児童
 export interface Student {
   id: string;
@@ -179,6 +209,36 @@ export interface MeetingSearchCriteria {
   /** 生徒名。表示のみ */
   studentName: string;
 }
+
+/**
+ * 会議で割り振ったアクション。
+ *
+ * 支援候補の「アクションとして登録」から作る。先生の入力欄を増やさないため、
+ * 文面・担当・方向性はすべて登録元の支援から導出する（手入力の項目は持たない）。
+ */
+export interface MeetingAction {
+  id: string;
+  supportId: string;
+  supportName: string;
+  organizationName: string;
+  /** アクションの文面 */
+  title: string;
+  direction: SupportDirection;
+  /** 「たった今 登録」の表示に使う */
+  registeredAt: string;
+}
+
+/** ひとりの児童について、この会議で決めたこと */
+export interface MeetingDecision {
+  directions: SupportDirection[];
+  actions: MeetingAction[];
+  memo: string;
+  /** 最後に変更した時刻。未変更なら null */
+  savedAt: string | null;
+}
+
+// 画面Dのタブ（実物の校内チーム会議の構成に合わせる）
+export type MeetingTab = 'situation' | 'support' | 'record' | 'screening';
 
 // 画面Dの表示単位：ひとつの領域と、そこに対応できる支援候補
 export interface DomainSuggestionGroup {

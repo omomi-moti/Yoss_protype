@@ -1,4 +1,11 @@
-import type { DomainScores, MeetingSearchCriteria, ProblemTag, Student, SupportCategory } from '../types';
+import type {
+  DomainScores,
+  MeetingSearchCriteria,
+  ProblemTag,
+  Student,
+  SupportCategory,
+  SupportDirection,
+} from '../types';
 import { SUPPORT_CATEGORIES } from './organizations';
 
 /** 1領域あたりのスコア上限（バーの分母に使う） */
@@ -45,6 +52,28 @@ const DOMAIN_PROBLEM_TAGS: Record<SupportCategory, ProblemTag[]> = {
 export function problemTagsForDomain(student: Student, domain: SupportCategory): ProblemTag[] {
   const relatedTags = DOMAIN_PROBLEM_TAGS[domain];
   return student.problems.filter(tag => relatedTags.includes(tag));
+}
+
+/**
+ * 専門機関に繋ぐ判断が要る領域の重さ。
+ * 支援の方向性 C（専門機関の活用）を AI推奨として出すかの判断に使う。
+ */
+export function specialistScore(scores: DomainScores): number {
+  return Math.max(scores.発達, scores.健康, scores.福祉);
+}
+
+/** 「A+B（SC相談開始）」を方向性と補足に分ける */
+export function parseCurrentSupport(student: Student): {
+  directions: SupportDirection[];
+  detail: string;
+} {
+  const matched = student.currentSupport.match(/^([ABC+]+)（(.+)）$/);
+  if (!matched) return { directions: [], detail: student.currentSupport };
+
+  return {
+    directions: matched[1].split('+') as SupportDirection[],
+    detail: matched[2],
+  };
 }
 
 /** スコアの水準（バッジの色分けに使う） */
