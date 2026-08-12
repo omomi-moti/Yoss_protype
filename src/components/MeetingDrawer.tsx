@@ -13,6 +13,7 @@ export default function MeetingDrawer({
   title,
   subtitle,
   onClose,
+  dismissOnOutsideClick = false,
   children,
   footer,
 }: {
@@ -21,6 +22,11 @@ export default function MeetingDrawer({
   title: string;
   subtitle?: string;
   onClose: () => void;
+  /**
+   * 外側を押しても閉じる。選ぶかやめるかだけの一時的なドロワー向け。
+   * 会議中ずっと開けておくもの（決定パネル）に付けると、中央の操作で消えてしまう。
+   */
+  dismissOnOutsideClick?: boolean;
   children: ReactNode;
   footer?: ReactNode;
 }) {
@@ -31,28 +37,39 @@ export default function MeetingDrawer({
       : { anchor: 'right-0 border-l', hidden: 'translate-x-full' };
 
   return (
-    <div
-      // 閉じている間は inert で中身ごと外す（キーボードのタブ順に残さない）
-      inert={!isOpen}
-      className={`absolute inset-y-0 ${position.anchor} z-20 w-80 bg-white flex flex-col shadow-xl transition-transform duration-200 border-gray-200 ${
-        isOpen ? 'translate-x-0' : `${position.hidden} pointer-events-none`
-      }`}
-    >
-      <div className="shrink-0 flex items-center gap-2 px-4 py-3 border-b border-gray-100">
-        <h2 className="text-sm font-bold text-yoss-dark">{title}</h2>
-        {subtitle && <span className="text-xs text-gray-400 truncate">{subtitle}</span>}
-        <button
-          onClick={onClose}
-          aria-label={`${title}を閉じる`}
-          className="ml-auto shrink-0 w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors"
-        >
-          <X size={14} />
-        </button>
+    <>
+      {/*
+        外側の受け皿。うっすら暗くするのは「ここを押せば閉じる」と分かるようにするためで、
+        下の内容は読めたままにする（会議中に何を見ていたか見失わせない）。
+      */}
+      {dismissOnOutsideClick && isOpen && (
+        // キーボードからは ✕ と Esc で閉じられるので、ここはタブ順に足さない
+        <div aria-hidden onClick={onClose} className="absolute inset-0 z-10 bg-yoss-dark/10" />
+      )}
+
+      <div
+        // 閉じている間は inert で中身ごと外す（キーボードのタブ順に残さない）
+        inert={!isOpen}
+        className={`absolute inset-y-0 ${position.anchor} z-20 w-80 bg-white flex flex-col shadow-xl transition-transform duration-200 border-gray-200 ${
+          isOpen ? 'translate-x-0' : `${position.hidden} pointer-events-none`
+        }`}
+      >
+        <div className="shrink-0 flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+          <h2 className="text-sm font-bold text-yoss-dark">{title}</h2>
+          {subtitle && <span className="text-xs text-gray-400 truncate">{subtitle}</span>}
+          <button
+            onClick={onClose}
+            aria-label={`${title}を閉じる`}
+            className="ml-auto shrink-0 w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors"
+          >
+            <X size={14} />
+          </button>
+        </div>
+
+        <div className="flex-1 min-h-0 overflow-y-auto">{children}</div>
+
+        {footer && <div className="shrink-0 border-t border-gray-100">{footer}</div>}
       </div>
-
-      <div className="flex-1 min-h-0 overflow-y-auto">{children}</div>
-
-      {footer && <div className="shrink-0 border-t border-gray-100">{footer}</div>}
-    </div>
+    </>
   );
 }

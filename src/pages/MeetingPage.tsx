@@ -321,6 +321,7 @@ export default function MeetingPage() {
         title={`検索結果 ${results.length}名`}
         subtitle="合計pt降順"
         onClose={() => setIsListOpen(false)}
+        dismissOnOutsideClick
       >
         <MeetingStudentList
           students={results}
