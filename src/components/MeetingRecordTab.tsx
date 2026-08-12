@@ -43,7 +43,7 @@ export default function MeetingRecordTab({
                   onClick={onGoToSupport}
                   className="mt-2 text-[13px] font-bold text-yoss-yellow-dark hover:underline"
                 >
-                  タブ②の支援候補から登録する
+                  タブ④の支援候補から登録する
                 </button>
               </div>
             ) : (

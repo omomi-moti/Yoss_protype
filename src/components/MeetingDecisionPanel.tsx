@@ -23,7 +23,7 @@ export default function MeetingDecisionPanel({
   onToggleDirection: (direction: SupportDirection) => void;
   onRemoveAction: (actionId: string) => void;
   onChangeMemo: (memo: string) => void;
-  /** タブ②へ送る。アクションは支援候補からしか作らない */
+  /** タブ④へ送る。アクションは支援候補からしか作らない */
   onAddFromSupport: () => void;
 }) {
   return (
@@ -69,7 +69,7 @@ export default function MeetingDecisionPanel({
         <h3 className="text-xs text-gray-500 mb-2">アクション（{decision.actions.length}件）</h3>
         {decision.actions.length === 0 ? (
           <p className="text-[13px] text-gray-400 border border-dashed border-gray-200 rounded-lg px-3 py-3 leading-relaxed">
-            まだアクションはありません。タブ②の支援候補から登録できます。
+            まだアクションはありません。タブ④の支援候補から登録できます。
           </p>
         ) : (
           <div className="flex flex-col gap-2">

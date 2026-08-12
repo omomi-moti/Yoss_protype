@@ -25,9 +25,9 @@ export const DIRECTIONS: { key: SupportDirection; label: string }[] = [
 /** 画面Dのタブ。実物の校内チーム会議の並びに合わせる */
 export const MEETING_TABS: { key: MeetingTab; label: string }[] = [
   { key: 'situation', label: '① 状況（気になる情報）' },
-  { key: 'support', label: '② 領域と支援候補' },
+  { key: 'screening', label: '② スクリーニング／会議記録' },
   { key: 'record', label: '③ 対応記録・アクション記録' },
-  { key: 'screening', label: '④ スクリーニング／会議記録' },
+  { key: 'support', label: '④ 領域と支援候補' },
 ];
 
 export const emptyDecision: MeetingDecision = {

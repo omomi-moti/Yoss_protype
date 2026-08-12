@@ -5,7 +5,7 @@ import SuggestionCard from './SuggestionCard';
 import type { DomainSuggestionGroup, Student, SupportCategory, SupportSuggestion } from '../types';
 
 /**
- * タブ②「領域と支援候補」。本プロトタイプの中心。
+ * タブ④「領域と支援候補」。本プロトタイプの中心。
  *
  * 「どの領域が重いか → その領域に対応できる支援 → アクションとして登録」までを
  * この面だけで終える。支援候補は常時表示する（ボタンで開くウィンドウにすると、
@@ -13,7 +13,7 @@ import type { DomainSuggestionGroup, Student, SupportCategory, SupportSuggestion
  *
  * 他のタブと同じく、ここも1画面に収めようとしない。領域セレクターを固定して
  * 候補一覧だけを内側でスクロールさせる作りにしていたが、カードは情報量が多く
- * 決まった高さに収めるのが窮屈だった。①③④と揃え、タブ全体を縦スクロールにする。
+ * 決まった高さに収めるのが窮屈だった。①②③と揃え、タブ全体を縦スクロールにする。
  */
 export default function MeetingSupportTab({
   student,

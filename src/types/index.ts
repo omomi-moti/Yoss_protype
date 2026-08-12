@@ -43,7 +43,7 @@ export type StaffRole =
 /** スクリーニングの1項目。担当の自由記述・AI判定・日常の対応記録の元になる */
 export interface ScreeningEntry {
   role: StaffRole;
-  /** 項目名（タブ④の行） */
+  /** 項目名（タブ②の行） */
   item: string;
   /** 担当が入力した気になる情報（タブ①のカード本文） */
   note: string;

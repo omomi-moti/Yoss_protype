@@ -5,7 +5,7 @@ import MeetingStudentSummary from './MeetingStudentSummary';
 import type { StaffRole, Student } from '../types';
 
 /**
- * タブ④「スクリーニング／会議記録」。
+ * タブ②「スクリーニング／会議記録」。
  *
  * 実物の担当別タブの構造をそのまま残し、1行＝1項目で「入力 → AI判定」を横に並べる。
  * 会議での決定は右ドロワー（この会議で決めたこと）に一本化しているので、
