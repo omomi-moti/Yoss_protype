@@ -176,6 +176,17 @@ export default function MeetingPage() {
     setIsDecisionOpen(true);
   };
 
+  /**
+   * タブの移動は必ずここを通す。
+   * 領域の選択は持ち越さない。タブを行き来したあとも、その児童のいちばん重い領域から
+   * 見直せるようにする（前に見ていた領域のまま戻ると、選び直したのか元のままなのか
+   * 分からなくなる）。
+   */
+  const selectTab = (next: MeetingTab) => {
+    setTab(next);
+    setSelectedDomain(null);
+  };
+
   const selectStudent = (studentId: string) => {
     setSelectedStudentId(studentId);
     // 児童を切り替えたら、その子の最重要領域から見せる
@@ -203,7 +214,7 @@ export default function MeetingPage() {
       }
       onChangeMemo={memo => updateDecision({ memo })}
       onAddFromSupport={() => {
-        setTab('support');
+        selectTab('support');
         setIsDecisionOpen(false);
       }}
       // 変更のたびに保存されているので、保存時刻を今にして記録を閉じるだけ
@@ -269,7 +280,7 @@ export default function MeetingPage() {
         {MEETING_TABS.map(meetingTab => (
           <button
             key={meetingTab.key}
-            onClick={() => setTab(meetingTab.key)}
+            onClick={() => selectTab(meetingTab.key)}
             className={`shrink-0 whitespace-nowrap px-3.5 py-2.5 text-[13px] border-b-[3px] transition-colors ${
               meetingTab.key === tab
                 ? 'border-yoss-yellow font-bold text-yoss-yellow-dark'
@@ -283,7 +294,7 @@ export default function MeetingPage() {
 
       <div className="flex-1 min-h-0">
         {tab === 'situation' && (
-          <MeetingSituationTab student={selectedStudent} onGoToRecords={() => setTab('record')} />
+          <MeetingSituationTab student={selectedStudent} onGoToRecords={() => selectTab('record')} />
         )}
         {tab === 'support' && (
           <MeetingSupportTab
