@@ -75,7 +75,8 @@ export default function Layout() {
         </div>
       </nav>
 
-      <main className="flex-1 p-6">
+      {/* min-w-0 が無いと、中身の横幅（画面Dの児童バーなど）でページ全体が横に伸びる */}
+      <main className="flex-1 min-w-0 p-6">
         <Outlet />
       </main>
     </div>

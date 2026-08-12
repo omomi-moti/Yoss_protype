@@ -1,4 +1,4 @@
-import { Phone, Mail, Globe, ChevronRight } from 'lucide-react';
+import { Phone, ChevronRight, Check } from 'lucide-react';
 import StarRating from './StarRating';
 import SupportConditions from './SupportConditions';
 import type { SupportCategory, SupportSuggestion } from '../types';
@@ -16,13 +16,23 @@ import type { SupportCategory, SupportSuggestion } from '../types';
  * 連絡先は折りたたまず常に出す。開閉はレイアウトを伸ばしてスクロールを強いる割に、
  * 中身が電話番号とURLだけで量が少なく、操作コストのほうが大きいため。
  */
-export default function SuggestionCard({ suggestion, rank, activeDomain, onOpenDetail }: {
+export default function SuggestionCard({
+  suggestion,
+  rank,
+  activeDomain,
+  isRegistered,
+  onOpenDetail,
+  onRegister,
+}: {
   suggestion: SupportSuggestion;
   /** 領域内の表示順（レビュー評価が高い順）。縦スキャンの起点になる */
   rank: number;
   /** いま表示している領域。カードでは、それ以外に効く領域だけを添える */
   activeDomain: SupportCategory;
+  /** この会議で既にアクションとして登録済みか */
+  isRegistered: boolean;
   onOpenDetail: () => void;
+  onRegister: () => void;
 }) {
   const otherDomains = suggestion.matchedDomains.filter(domain => domain !== activeDomain);
 
@@ -95,42 +105,55 @@ export default function SuggestionCard({ suggestion, rank, activeDomain, onOpenD
           {/* ③利用条件 */}
           <SupportConditions support={suggestion} />
 
-          {/* ④連絡先。mt-auto でカード下端に揃え、行内のカードで位置が一致するようにする */}
+          {/*
+            ④連絡先と操作。mt-auto でカード下端に揃え、行内のカードで位置が一致するようにする。
+            会議の場で要るのは電話番号だけなので、メールとURLは詳細モーダルに送って
+            そのぶんの高さを「アクションとして登録」に回す（1画面に収めるため）。
+          */}
           <div className="space-y-1.5 mt-auto">
-            <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-600">
-              {suggestion.contact.tel && (
-                <span className="flex items-center gap-1 whitespace-nowrap">
-                  <Phone size={11} className="text-gray-400" />{suggestion.contact.tel}
-                </span>
-              )}
-              {suggestion.contact.email && (
-                <span className="flex items-center gap-1 min-w-0">
-                  <Mail size={11} className="text-gray-400 shrink-0" />
-                  <span className="truncate" title={suggestion.contact.email}>{suggestion.contact.email}</span>
-                </span>
-              )}
-              {suggestion.contact.web && (
-                <span className="flex items-center gap-1 min-w-0">
-                  <Globe size={11} className="text-gray-400 shrink-0" />
-                  <span className="truncate" title={suggestion.contact.web}>{suggestion.contact.web}</span>
-                </span>
-              )}
-            </div>
+            {suggestion.contact.tel && (
+              <div className="flex items-center gap-1 text-[11px] text-gray-600 whitespace-nowrap">
+                <Phone size={11} className="text-gray-400" />{suggestion.contact.tel}
+              </div>
+            )}
 
             {/*
+              主たる操作は会議の決定に送ること。押すだけで済ませる（文面・担当・方向性は
+              支援から導出する）。登録済みは押せなくして、同じ支援を二重に積まない。
               詳細はモーダルで開く。カード全体をクリック可能にすると、常時表示している
-              連絡先の選択やリンクを妨げるため、明示的なボタンにする。
+              電話番号の選択を妨げるため、どちらも明示的なボタンにする。
             */}
-            <button
-              onClick={onOpenDetail}
-              className="w-full flex items-center justify-center gap-1 mt-1 py-1.5 rounded-lg border border-gray-200 text-[11px] font-bold text-gray-600 hover:border-yoss-yellow hover:text-yoss-yellow-dark transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yoss-yellow/40"
-            >
-              {/* 件数はモーダルで実際に表示されるレビュー（団体全体）の数に合わせる */}
-              {suggestion.organizationReview.count > 0
-                ? `レビューと詳細を見る（${suggestion.organizationReview.count}件）`
-                : '詳細を見る'}
-              <ChevronRight size={13} />
-            </button>
+            <div className="flex gap-2 pt-0.5">
+              <button
+                onClick={onRegister}
+                disabled={isRegistered}
+                className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yoss-yellow/40 ${
+                  isRegistered
+                    ? 'bg-yoss-yellow-light text-yoss-yellow-dark cursor-default'
+                    : 'bg-yoss-yellow text-white hover:bg-yoss-yellow-dark'
+                }`}
+              >
+                {isRegistered ? (
+                  <>
+                    <Check size={13} strokeWidth={3} />
+                    登録済み
+                  </>
+                ) : (
+                  'アクションとして登録'
+                )}
+              </button>
+
+              <button
+                onClick={onOpenDetail}
+                className="shrink-0 flex items-center gap-0.5 px-2.5 py-2 rounded-lg border border-gray-200 text-[11px] font-bold text-gray-600 hover:border-yoss-yellow hover:text-yoss-yellow-dark transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yoss-yellow/40"
+              >
+                {/* 件数はモーダルで実際に表示されるレビュー（団体全体）の数に合わせる */}
+                {suggestion.organizationReview.count > 0
+                  ? `レビュー${suggestion.organizationReview.count}件`
+                  : '詳細'}
+                <ChevronRight size={13} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
