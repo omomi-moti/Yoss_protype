@@ -179,6 +179,9 @@ export default function MeetingPage() {
     setSelectedStudentId(studentId);
     // 児童を切り替えたら、その子の最重要領域から見せる
     setSelectedDomain(null);
+    // タブは①に戻す。前の児童のタブ位置のままだと、状況を確認しないまま
+    // 支援候補や対応記録に進んでしまう
+    setTab('situation');
   };
 
   const recommended = recommendedDirections(
