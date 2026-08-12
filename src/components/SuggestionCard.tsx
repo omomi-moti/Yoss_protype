@@ -41,15 +41,15 @@ export default function SuggestionCard({
 
   return (
     // h-full で行内の他のカードと高さを揃える（グリッドが行の高さを最も高いカードに合わせる）
-    <div className={`bg-white rounded-xl border border-gray-200 p-4 h-full transition-colors hover:border-yoss-yellow/60 ${
+    <div className={`bg-white rounded-xl border border-gray-200 p-5 h-full transition-colors hover:border-yoss-yellow/60 ${
       // 利用の報告がない支援は破線で表す（一覧を見渡して分かるように）
       rating === null ? 'border-dashed' : ''
     }`}>
-      <div className="flex gap-3 h-full">
+      <div className="flex gap-4 h-full">
         {/* 行頭のアンカー：領域内の順位 */}
         <span className="text-sm font-bold text-gray-300 shrink-0 w-4 pt-0.5">{rank}</span>
 
-        <div className="flex-1 min-w-0 flex flex-col gap-3">
+        <div className="flex-1 min-w-0 flex flex-col gap-4">
           {/* ①何を選ぶか：支援名と評価を縦に隣接させる */}
           <div>
             <h5 className="text-base font-bold text-yoss-dark leading-snug">

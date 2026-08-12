@@ -10,6 +10,10 @@ import type { DomainSuggestionGroup, Student, SupportCategory, SupportSuggestion
  * 「どの領域が重いか → その領域に対応できる支援 → アクションとして登録」までを
  * この面だけで終える。支援候補は常時表示する（ボタンで開くウィンドウにすると、
  * 既存事業と地域の支援を見比べながら決められなくなる）。
+ *
+ * タブ①④と違い、ここは1画面に収める作りを残す。領域を選んでから候補を見比べる
+ * という操作の途中で、選んだ領域（8領域タイル）が見えなくなると迷子になるため。
+ * スクロールするのは支援候補の一覧だけで、それ以外は常に見えたままにする。
  */
 export default function MeetingSupportTab({
   student,
@@ -59,9 +63,15 @@ export default function MeetingSupportTab({
             />
           </div>
 
+          {/*
+            見出し・カード・件数によって高さが決まるので、この一続きだけを
+            スクロール領域にする（見出しをカードと切り離して固定しない）。
+            列は常に2列。カードは評価・説明・利用条件・連絡先・操作まで持つので、
+            3列にすると1枚が狭くなって読みにくい。件数が多い分はここだけが縦スクロールする。
+          */}
           {activeGroup && (
-            <div className="flex-1 min-h-0 flex flex-col">
-              <div className="shrink-0 flex items-baseline gap-2 flex-wrap mb-2">
+            <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+              <div className="flex items-baseline gap-2 flex-wrap mb-2">
                 <h3 className="text-sm font-bold text-yoss-dark">
                   {activeGroup.domain} {activeGroup.score}pt に対応できる支援
                   <span className="ml-1 text-yoss-yellow-dark">
@@ -81,15 +91,7 @@ export default function MeetingSupportTab({
                 <span className="text-xs text-gray-500">／ レビュー評価が高い順</span>
               </div>
 
-              {/*
-                横幅を使って並べる。1枚あたりの幅を絞ることでカード内の視線が縦1本で済み、
-                候補が3件までは1行に収まる。4件以上でここだけがスクロールする。
-              */}
-              <div
-                className={`grid gap-3 flex-1 min-h-0 overflow-y-auto content-start pr-1 ${
-                  activeGroup.suggestions.length > 2 ? 'grid-cols-3' : 'grid-cols-2'
-                }`}
-              >
+              <div className="grid grid-cols-2 gap-3 content-start">
                 {activeGroup.suggestions.map((suggestion, index) => (
                   <SuggestionCard
                     key={suggestion.supportId}
