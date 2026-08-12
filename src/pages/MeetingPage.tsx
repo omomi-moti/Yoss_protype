@@ -14,6 +14,7 @@ import {
   recommendedDirections,
 } from '../data/meeting';
 import MeetingDecisionPanel from '../components/MeetingDecisionPanel';
+import MeetingDecisionTab from '../components/MeetingDecisionTab';
 import MeetingDrawer from '../components/MeetingDrawer';
 import MeetingRecordTab from '../components/MeetingRecordTab';
 import MeetingScreeningTab from '../components/MeetingScreeningTab';
@@ -189,6 +190,27 @@ export default function MeetingPage() {
     specialistScore(selectedStudent.scores)
   );
 
+  // 記録をつける面。タブ⑤は同じ decision を読むだけで、入力はここに集約する
+  const decisionPanel = (
+    <MeetingDecisionPanel
+      decision={decision}
+      recommended={recommended}
+      onToggleDirection={toggleDirection}
+      onRemoveAction={actionId =>
+        updateDecision({
+          actions: decision.actions.filter(action => action.id !== actionId),
+        })
+      }
+      onChangeMemo={memo => updateDecision({ memo })}
+      onAddFromSupport={() => {
+        setTab('support');
+        setIsDecisionOpen(false);
+      }}
+      // 変更のたびに保存されているので、押しても保存時刻を今にするだけ
+      onSave={() => updateDecision({})}
+    />
+  );
+
   return (
     /*
       h-[calc(100vh-3rem)] の 3rem は main の padding。ページ全体はスクロールさせない。
@@ -271,14 +293,15 @@ export default function MeetingPage() {
             onRegisterAction={registerAction}
           />
         )}
-        {tab === 'record' && (
-          <MeetingRecordTab
+        {tab === 'record' && <MeetingRecordTab student={selectedStudent} />}
+        {tab === 'screening' && <MeetingScreeningTab student={selectedStudent} />}
+        {tab === 'decision' && (
+          <MeetingDecisionTab
             student={selectedStudent}
-            actions={decision.actions}
-            onGoToSupport={() => setTab('support')}
+            decision={decision}
+            onOpenRecorder={() => setIsDecisionOpen(true)}
           />
         )}
-        {tab === 'screening' && <MeetingScreeningTab student={selectedStudent} />}
       </div>
 
       {/*
@@ -309,12 +332,13 @@ export default function MeetingPage() {
         <span className="shrink-0 text-xs text-gray-400">
           {decision.savedAt ? `保存しました ${decision.savedAt}` : 'まだ決定はありません'}
         </span>
+        {/* 記録するのはドロワー側。決めた結果を読むのはタブ⑤ */}
         <button
           onClick={() => setIsDecisionOpen(!isDecisionOpen)}
           className="ml-auto shrink-0 flex items-center gap-1.5 rounded-lg bg-yoss-yellow px-4 py-2 text-[13px] font-bold text-white hover:bg-yoss-yellow-dark transition-colors"
         >
           <ClipboardList size={14} />
-          {isDecisionOpen ? '決定を閉じる' : '決定を開く'}
+          {isDecisionOpen ? '記録を閉じる' : 'この会議の記録をつける'}
         </button>
       </div>
 
@@ -339,27 +363,8 @@ export default function MeetingPage() {
         title="この会議で決めたこと"
         subtitle={`${selectedStudent.grade} ${selectedStudent.number}番`}
         onClose={() => setIsDecisionOpen(false)}
-        footer={
-          <p className="px-4 py-2.5 text-xs text-yoss-green bg-green-50/60">
-            {decision.savedAt ? `保存しました ${decision.savedAt}` : '変更すると即時保存されます'}
-          </p>
-        }
       >
-        <MeetingDecisionPanel
-          decision={decision}
-          recommended={recommended}
-          onToggleDirection={toggleDirection}
-          onRemoveAction={actionId =>
-            updateDecision({
-              actions: decision.actions.filter(action => action.id !== actionId),
-            })
-          }
-          onChangeMemo={memo => updateDecision({ memo })}
-          onAddFromSupport={() => {
-            setTab('support');
-            setIsDecisionOpen(false);
-          }}
-        />
+        {decisionPanel}
       </MeetingDrawer>
 
       {detail && (

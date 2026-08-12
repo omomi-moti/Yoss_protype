@@ -1,13 +1,15 @@
-import { Check, Plus, X } from 'lucide-react';
+import { Check, Plus, Save, X } from 'lucide-react';
 import { DIRECTIONS } from '../data/meeting';
 import type { MeetingDecision, SupportDirection } from '../types';
 
 /**
- * 「この会議で決めたこと」（右ドロワーの中身）。
+ * 「この会議で決めたこと」。右ドロワーとタブ⑤の両方から同じものを表示する
+ * （タブ⑤は他のタブを見ながらでも右ドロワーで確認できる内容の複製）。
  *
- * タブを切り替えても消えないよう、タブの外に置く。ここにある入力は
- * 実物の校内チーム会議にもある3つ（方向性のチェック・アクション・会議メモ）だけで、
- * 本プロトタイプで新しい入力欄は足していない。
+ * ここにある入力は実物の校内チーム会議にもある3つ（方向性のチェック・アクション・
+ * 会議メモ）だけで、本プロトタイプで新しい入力欄は足していない。
+ * 変更は即時保存されるが、それが伝わりにくいという指摘を受けて「保存する」ボタンも
+ * 添えている。押しても新しく保存されるものは無く、保存時刻を今に更新するだけ。
  */
 export default function MeetingDecisionPanel({
   decision,
@@ -16,6 +18,7 @@ export default function MeetingDecisionPanel({
   onRemoveAction,
   onChangeMemo,
   onAddFromSupport,
+  onSave,
 }: {
   decision: MeetingDecision;
   /** AI推奨として印を付ける方向性 */
@@ -25,6 +28,7 @@ export default function MeetingDecisionPanel({
   onChangeMemo: (memo: string) => void;
   /** タブ④へ送る。アクションは支援候補からしか作らない */
   onAddFromSupport: () => void;
+  onSave: () => void;
 }) {
   return (
     <div className="p-4 flex flex-col gap-5">
@@ -114,6 +118,19 @@ export default function MeetingDecisionPanel({
           placeholder="会議で出た話をそのまま書けます"
           className="w-full px-3 py-2.5 text-[13px] leading-relaxed border border-gray-200 rounded-lg bg-gray-50/60 focus:outline-none focus:border-yoss-yellow focus:ring-1 focus:ring-yoss-yellow/20"
         />
+      </section>
+
+      <section className="flex items-center gap-3 pt-4 border-t border-gray-100">
+        <button
+          onClick={onSave}
+          className="shrink-0 flex items-center gap-1.5 rounded-lg bg-yoss-yellow px-4 py-2 text-[13px] font-bold text-white hover:bg-yoss-yellow-dark transition-colors"
+        >
+          <Save size={14} />
+          保存する
+        </button>
+        <p className="text-xs text-yoss-green">
+          {decision.savedAt ? `自動保存 ${decision.savedAt}` : '変更すると即時保存されます'}
+        </p>
       </section>
     </div>
   );

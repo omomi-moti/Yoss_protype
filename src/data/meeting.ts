@@ -22,12 +22,17 @@ export const DIRECTIONS: { key: SupportDirection; label: string }[] = [
   { key: 'C', label: 'C 専門機関の活用' },
 ];
 
-/** 画面Dのタブ。実物の校内チーム会議の並びに合わせる */
+/**
+ * 画面Dのタブ。①〜④は実物の校内チーム会議の並びに合わせる。
+ * ⑤ 今回の対応記録 はプロトタイプ独自。右ドロワー（この会議で決めたこと）と
+ * 同じ内容を、他のタブを見ながらでも確認できるように複製表示する。
+ */
 export const MEETING_TABS: { key: MeetingTab; label: string }[] = [
   { key: 'situation', label: '① 状況（気になる情報）' },
   { key: 'screening', label: '② スクリーニング／会議記録' },
   { key: 'record', label: '③ 対応記録・アクション記録' },
   { key: 'support', label: '④ 領域と支援候補' },
+  { key: 'decision', label: '⑤ 今回の対応記録' },
 ];
 
 export const emptyDecision: MeetingDecision = {

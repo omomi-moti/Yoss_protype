@@ -238,7 +238,8 @@ export interface MeetingDecision {
 }
 
 // 画面Dのタブ（実物の校内チーム会議の構成に合わせる）
-export type MeetingTab = 'situation' | 'support' | 'record' | 'screening';
+// 'decision' は実物には無い5番目のタブ。「この会議で決めたこと」を右ドロワーと複製表示する
+export type MeetingTab = 'situation' | 'support' | 'record' | 'screening' | 'decision';
 
 // 画面Dの表示単位：ひとつの領域と、そこに対応できる支援候補
 export interface DomainSuggestionGroup {
