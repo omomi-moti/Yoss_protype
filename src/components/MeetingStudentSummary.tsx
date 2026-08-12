@@ -30,7 +30,9 @@ export default function MeetingStudentSummary({ student }: { student: Student })
         <h2 className="text-lg font-bold text-yoss-dark leading-tight">
           {student.grade} {student.number}番
         </h2>
-        <p className="text-[13px] text-gray-600 mt-1">
+        {/* 右の「現在の方針」と同じ調子でラベルを添える。文だけだと何を指す情報か伝わらないため */}
+        <p className="text-[11px] text-gray-500 mt-2">気になる様子</p>
+        <p className="text-[13px] text-gray-600 mt-0.5">
           {notes.map((note, index) => (
             <span key={note}>
               {index > 0 && <span className="mx-1.5 text-gray-300">・</span>}
