@@ -206,8 +206,11 @@ export default function MeetingPage() {
         setTab('support');
         setIsDecisionOpen(false);
       }}
-      // 変更のたびに保存されているので、押しても保存時刻を今にするだけ
-      onSave={() => updateDecision({})}
+      // 変更のたびに保存されているので、保存時刻を今にして記録を閉じるだけ
+      onSave={() => {
+        updateDecision({});
+        setIsDecisionOpen(false);
+      }}
     />
   );
 

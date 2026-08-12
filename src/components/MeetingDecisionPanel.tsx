@@ -8,8 +8,9 @@ import type { MeetingDecision, SupportDirection } from '../types';
  *
  * ここにある入力は実物の校内チーム会議にもある3つ（方向性のチェック・アクション・
  * 会議メモ）だけで、本プロトタイプで新しい入力欄は足していない。
- * 変更は即時保存されるが、それが伝わりにくいという指摘を受けて「保存する」ボタンも
- * 添えている。押しても新しく保存されるものは無く、保存時刻を今に更新するだけ。
+ * 変更は即時保存されるが、それが伝わりにくいという指摘を受けて「保存して閉じる」
+ * ボタンも添えている。押しても新しく保存されるものは無く、保存時刻を今に更新して
+ * 記録を閉じる（＝書き終えたことの区切りをつけるためのボタン）。
  */
 export default function MeetingDecisionPanel({
   decision,
@@ -126,7 +127,7 @@ export default function MeetingDecisionPanel({
           className="shrink-0 flex items-center gap-1.5 rounded-lg bg-yoss-yellow px-4 py-2 text-[13px] font-bold text-white hover:bg-yoss-yellow-dark transition-colors"
         >
           <Save size={14} />
-          保存する
+          保存して閉じる
         </button>
         <p className="text-xs text-yoss-green">
           {decision.savedAt ? `自動保存 ${decision.savedAt}` : '変更すると即時保存されます'}
