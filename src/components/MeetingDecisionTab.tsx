@@ -22,7 +22,7 @@ export default function MeetingDecisionTab({
 }) {
   return (
     <div className="h-full overflow-y-auto px-6 py-4">
-      <div className="max-w-3xl flex flex-col gap-3">
+      <div className="flex flex-col gap-3">
         <MeetingStudentSummary student={student} />
 
         <div className="flex items-baseline gap-3 flex-wrap">

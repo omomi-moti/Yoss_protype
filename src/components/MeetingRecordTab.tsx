@@ -16,7 +16,7 @@ export default function MeetingRecordTab({ student }: { student: Student }) {
 
   return (
     <div className="h-full overflow-y-auto px-6 py-4">
-      <div className="max-w-3xl flex flex-col gap-3">
+      <div className="flex flex-col gap-3">
         <MeetingStudentSummary student={student} />
 
         {/* 前学期までに決まっている対応。今日の会議で継続か完了かを決める材料 */}
