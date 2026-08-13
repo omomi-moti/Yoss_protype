@@ -8,7 +8,7 @@ import type {
   SupportDirection,
 } from '../types';
 import { SUPPORT_CATEGORIES } from './organizations';
-import { answersFromTags, scoresFromAnswers } from './screening';
+import { ABSENCE_GRADES, answersFromTags, scoresFromAnswers } from './screening';
 
 /** 合計スコアは領域別スコアから導出する */
 export function totalScore(scores: DomainScores): number {
@@ -230,6 +230,43 @@ export const demoStudents: Student[] = seeds.map(seed => ({
 /** その児童の今学期のスクリーニング回答 */
 export function screeningOf(student: Student): ScreeningAnswers {
   return answersFromTags(student.problems);
+}
+
+/** 児童IDと学年から決まる、それらしい値を作る（デモ用・毎回同じ値になる） */
+function seededValue(seed: string, max: number): number {
+  let hash = 7;
+  for (const char of seed) hash = (hash * 131 + char.charCodeAt(0)) % 100003;
+  // 末尾1文字しか違わない種（学年違い）でも値が散るように、もう一度混ぜる
+  hash = (hash * hash + 17) % 100003;
+  return hash % (max + 1);
+}
+
+/**
+ * 欠席日数（スクリーニング②）のデモデータ。
+ *
+ * 在籍していない学年（今の学年より上）は空欄のまま。実物でも先の学年は埋まらない。
+ * 今年度の日数は問題タグと辻褄が合うようにする。不登校傾向の児童が今年度3日では
+ * 「③不登校期間あり」に点が付いている説明がつかないため。
+ */
+export function absenceDays(student: Student): { grade: string; days: number | null }[] {
+  const { grade } = parseGrade(student.grade);
+  const currentIndex = ABSENCE_GRADES.indexOf(`小学${grade.replace('年', '')}年`);
+
+  return ABSENCE_GRADES.map((label, index) => {
+    if (currentIndex < 0 || index > currentIndex) return { grade: label, days: null };
+
+    const seed = `${student.id}-${index}`;
+    const isThisYear = index === currentIndex;
+
+    if (student.problems.includes('不登校傾向')) {
+      return { grade: label, days: isThisYear ? 30 + seededValue(seed, 55) : seededValue(seed, 18) };
+    }
+    if (student.problems.includes('欠席・遅刻')) {
+      return { grade: label, days: isThisYear ? 7 + seededValue(seed, 12) : seededValue(seed, 8) };
+    }
+
+    return { grade: label, days: seededValue(seed, 6) };
+  });
 }
 
 /** 合計スコアが高い順（会議では重い児童から検討する） */

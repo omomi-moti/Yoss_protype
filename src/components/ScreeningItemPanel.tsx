@@ -1,5 +1,5 @@
 import { DOMAIN_GROUP_LABELS, changeOf, itemGroupsOfOwner, previousAnswers } from '../data/screening';
-import { screeningOf } from '../data/students';
+import { absenceDays, screeningOf } from '../data/students';
 import type { ScreeningChange, ScreeningOwner, Student } from '../types';
 
 /** 変化ごとのチップの色。実物の凡例（悪化＝橙／良化＝青／変化なし＝灰） */
@@ -11,13 +11,6 @@ const CHANGE_STYLES: Record<ScreeningChange, string> = {
 };
 
 const LEGEND: ScreeningChange[] = ['悪化', '良化', '変化なし', '未選択'];
-
-/** 欠席日数（②）だけは点数ではなく学年ごとの日数を入れる。実物に合わせて枠だけ出す */
-const ABSENCE_GRADES = [
-  '小学1年', '小学2年', '小学3年', '小学4年',
-  '小学5年', '小学6年', '中学1年', '中学2年',
-  '中学3年', '高校1年', '高校2年', '高校3年',
-];
 
 /**
  * スクリーニングの項目一覧（タブ②のサブタブの中身）。
@@ -76,11 +69,19 @@ export default function ScreeningItemPanel({
                       {item.label}
                     </div>
                     <div className="grid grid-cols-4 gap-x-4 gap-y-1 pl-7 pt-1.5">
-                      {ABSENCE_GRADES.map(grade => (
+                      {absenceDays(student).map(({ grade, days }) => (
                         <div key={grade} className="flex items-center gap-2">
                           <span className="text-[11px] text-gray-500 w-14 text-right">{grade}</span>
-                          <span className="flex-1 border border-gray-200 rounded bg-white px-2 py-0.5 text-[11px] text-gray-300 text-center">
-                            -
+                          <span
+                            className={`flex-1 border rounded px-2 py-0.5 text-[11px] text-center ${
+                              days === null
+                                ? 'border-gray-200 bg-white text-gray-300'
+                                : days >= 30
+                                ? 'border-orange-200 bg-orange-50 text-orange-600 font-bold'
+                                : 'border-gray-200 bg-white text-gray-700'
+                            }`}
+                          >
+                            {days === null ? '-' : days}
                           </span>
                         </div>
                       ))}

@@ -252,6 +252,16 @@ export const SCREENING_ITEMS: ScreeningItem[] = [
   { id: 37, domain: '地域情報', owner: '地域・調査', label: 'その他', criteria: '' },
 ];
 
+/**
+ * 欠席日数（②）の入力枠。実物は在籍しうる学年ぶんの枠が常に並ぶので、
+ * 小学1年から高校3年まで固定で持つ。
+ */
+export const ABSENCE_GRADES = [
+  '小学1年', '小学2年', '小学3年', '小学4年',
+  '小学5年', '小学6年', '中学1年', '中学2年',
+  '中学3年', '高校1年', '高校2年', '高校3年',
+];
+
 /** 実物のサブタブの並び。項目はこの単位で分かれて入力される */
 export const SCREENING_OWNERS: ScreeningOwner[] = [
   'データ',
