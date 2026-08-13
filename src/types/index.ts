@@ -9,7 +9,7 @@ export type SupportCategory =
   | '福祉'
   | '地域情報';
 
-// 問題タグ（スクリーニング43項目から抽出した主要カテゴリ）
+// 問題タグ（スクリーニング37項目から抽出した主要カテゴリ）
 export type ProblemTag =
   | '不登校傾向'
   | '欠席・遅刻'
@@ -31,7 +31,7 @@ export type ProblemTag =
 // 8領域それぞれのスコア（該当なしは0）
 export type DomainScores = Record<SupportCategory, number>;
 
-// スクリーニングを入力する校内の担当
+// 自由記述を書く校内の担当（スクリーニングの入力面 ScreeningOwner とは別のもの）
 export type StaffRole =
   | '担任'
   | '特別支援'
@@ -40,15 +40,13 @@ export type StaffRole =
   | 'SC・SSW'
   | '管理職・生指';
 
-/** スクリーニングの1項目。担当の自由記述・AI判定・日常の対応記録の元になる */
+/** 担当が入力した気になる情報（タブ①）と、日常の対応記録（タブ③）の元になる1件 */
 export interface ScreeningEntry {
   role: StaffRole;
-  /** 項目名（タブ②の行） */
+  /** 自由記述の見出しになる項目名 */
   item: string;
   /** 担当が入力した気になる情報（タブ①のカード本文） */
   note: string;
-  /** 入力があった項目にだけ付く */
-  judgement: '経過観察' | '要注意';
 }
 
 /** 日常の対応記録（タブ③・参照専用） */
@@ -61,13 +59,72 @@ export interface SupportRecord {
 // 支援の方向性 A / B / C
 export type SupportDirection = 'A' | 'B' | 'C';
 
+/**
+ * スクリーニングの入力面。実物はこの単位でタブが分かれていて、
+ * 37項目がここに割り振られている（担当が入力する項目しかそのタブに出ない）。
+ */
+export type ScreeningOwner =
+  | 'データ'
+  | '学級'
+  | '特別支援'
+  | '養護'
+  | '事務'
+  | '管理職・生指'
+  | '地域・調査';
+
+/**
+ * 実物のスクリーニング37項目のうちの1項目。
+ * 8領域それぞれの下に並び、点数（1点／2点）を付けると領域スコアになる。
+ */
+export interface ScreeningItem {
+  /** 実物の通し番号（1〜37）。画面にもそのまま出す */
+  id: number;
+  domain: SupportCategory;
+  /** この項目を入力する面。実物のサブタブに対応する */
+  owner: ScreeningOwner;
+  label: string;
+  /** 1点・2点の基準。実物の説明文をそのまま出す */
+  criteria: string;
+  /** 実物で★が付いている項目 */
+  starred?: boolean;
+  /**
+   * 点数を付けない項目（②欠席日数のように学年ごとの日数を入れるだけの行）。
+   * 行は残す。項目が抜けているように見せないため。
+   */
+  scored?: false;
+}
+
+/** 児童のスクリーニング回答。項目ID → 点数。未回答の項目は持たない */
+export type ScreeningAnswers = Record<number, 1 | 2>;
+
+/** 前学期と比べた変化。実物の凡例（悪化・良化・変化なし・未選択）に合わせる */
+export type ScreeningChange = '悪化' | '良化' | '変化なし' | '未選択';
+
+/**
+ * 「支援の現状」の1項目（A/B/C それぞれの下に8項目前後並ぶ）。
+ * B の項目にカテゴリ名しか無いことが、本プロトタイプが指している問題そのもの。
+ */
+export interface DirectionItem {
+  direction: SupportDirection;
+  /** 方向性ごとの通し番号 */
+  index: number;
+  label: string;
+}
+
+/** 支援の現状で各項目に付く状態。実物の 新／続／拒 */
+export type DirectionState = '新' | '続' | '拒';
+
 // 校内チーム会議で検討する児童
 export interface Student {
   id: string;
   grade: string;
   number: number;
+  /** スクリーニングの回答から導出する。データとして手で置かない（screening.ts 参照） */
   scores: DomainScores;
-  /** 表示専用。支援候補の抽出には使わない */
+  /**
+   * この児童のスクリーニング回答の元。ここからスクリーニング37項目の回答を組み立て、
+   * その合計が scores になる。表示（タブ①の自由記述・対応記録）の元でもある。
+   */
   problems: ProblemTag[];
   notes: string;
   currentSupport: string;
