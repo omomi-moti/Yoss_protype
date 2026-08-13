@@ -308,7 +308,12 @@ export default function MeetingPage() {
           />
         )}
         {tab === 'record' && <MeetingRecordTab student={selectedStudent} />}
-        {tab === 'screening' && <MeetingScreeningTab student={selectedStudent} />}
+        {tab === 'screening' && (
+          <MeetingScreeningTab
+            student={selectedStudent}
+            onGoToSupport={() => selectTab('support')}
+          />
+        )}
         {tab === 'decision' && (
           <MeetingDecisionTab
             student={selectedStudent}

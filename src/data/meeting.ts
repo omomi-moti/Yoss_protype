@@ -1,4 +1,6 @@
 import type {
+  DirectionItem,
+  DirectionState,
   MeetingAction,
   MeetingDecision,
   MeetingTab,
@@ -21,6 +23,43 @@ export const DIRECTIONS: { key: SupportDirection; label: string }[] = [
   { key: 'B', label: 'B 地域資源の活用' },
   { key: 'C', label: 'C 専門機関の活用' },
 ];
+
+/**
+ * 実物の「支援の現状」に並ぶ項目。方向性ごとに、実際に何をしているかを 新／続／拒 で記録する。
+ *
+ * ここが本プロトタイプの出発点。B の項目はどれも「◯◯の活用」というカテゴリ名でしかなく、
+ * チェックを入れられても、実際にどの団体に繋ぐのかはシステムのどこにも無い。
+ * A と C は繋ぎ先が校内・公的機関に決まっているので、カテゴリ名だけで用が足りる。
+ */
+export const DIRECTION_ITEMS: DirectionItem[] = [
+  { direction: 'A', index: 1, label: '担任のアプローチ' },
+  { direction: 'A', index: 2, label: '生徒指導や児童生徒支援のアプローチ' },
+  { direction: 'A', index: 3, label: '養護教諭のアプローチ' },
+  { direction: 'A', index: 4, label: '特別支援担当のアプローチ' },
+  { direction: 'A', index: 5, label: '学年団のアプローチ' },
+  { direction: 'A', index: 6, label: 'SSWを活用したアプローチ' },
+  { direction: 'A', index: 7, label: 'SCを活用したアプローチ' },
+  { direction: 'A', index: 8, label: 'その他' },
+
+  { direction: 'B', index: 1, label: '家庭教育支援の活用' },
+  { direction: 'B', index: 2, label: '学習支援の活用' },
+  { direction: 'B', index: 3, label: '居場所、こども食堂の活用' },
+  { direction: 'B', index: 4, label: '地域の見守りの活用' },
+  { direction: 'B', index: 5, label: '地域人材の活用' },
+  { direction: 'B', index: 6, label: '学童保育の活用' },
+  { direction: 'B', index: 7, label: '地域の福祉サービスの活用(放課後デイ等)' },
+  { direction: 'B', index: 8, label: 'その他' },
+
+  { direction: 'C', index: 1, label: '家庭児童相談室・児童相談所の活用' },
+  { direction: 'C', index: 2, label: '少年サポートセンターの活用' },
+  { direction: 'C', index: 3, label: '教育センターの活用' },
+  { direction: 'C', index: 4, label: '福祉制度(生活保護,母子相談等)の活用' },
+  { direction: 'C', index: 5, label: '医療機関の活用' },
+  { direction: 'C', index: 6, label: 'その他' },
+];
+
+/** 支援の現状で使う状態。実物と同じ3つ */
+export const DIRECTION_STATES: DirectionState[] = ['新', '続', '拒'];
 
 /**
  * 画面Dのタブ。①〜④は実物の校内チーム会議の並びに合わせる。

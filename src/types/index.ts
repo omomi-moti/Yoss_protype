@@ -61,6 +61,46 @@ export interface SupportRecord {
 // 支援の方向性 A / B / C
 export type SupportDirection = 'A' | 'B' | 'C';
 
+/**
+ * 実物のスクリーニング37項目のうちの1項目。
+ * 8領域それぞれの下に並び、点数（1点／2点）を付けると領域スコアになる。
+ */
+export interface ScreeningItem {
+  /** 実物の通し番号（1〜37）。画面にもそのまま出す */
+  id: number;
+  domain: SupportCategory;
+  label: string;
+  /** 1点・2点の基準。実物の説明文をそのまま出す */
+  criteria: string;
+  /** 実物で★が付いている項目 */
+  starred?: boolean;
+  /**
+   * 点数を付けない項目（②欠席日数のように学年ごとの日数を入れるだけの行）。
+   * 行は残す。項目が抜けているように見せないため。
+   */
+  scored?: false;
+}
+
+/** 児童のスクリーニング回答。項目ID → 点数。未回答の項目は持たない */
+export type ScreeningAnswers = Record<number, 1 | 2>;
+
+/** 前学期と比べた変化。実物の凡例（悪化・良化・変化なし・未選択）に合わせる */
+export type ScreeningChange = '悪化' | '良化' | '変化なし' | '未選択';
+
+/**
+ * 「支援の現状」の1項目（A/B/C それぞれの下に8項目前後並ぶ）。
+ * B の項目にカテゴリ名しか無いことが、本プロトタイプが指している問題そのもの。
+ */
+export interface DirectionItem {
+  direction: SupportDirection;
+  /** 方向性ごとの通し番号 */
+  index: number;
+  label: string;
+}
+
+/** 支援の現状で各項目に付く状態。実物の 新／続／拒 */
+export type DirectionState = '新' | '続' | '拒';
+
 // 校内チーム会議で検討する児童
 export interface Student {
   id: string;

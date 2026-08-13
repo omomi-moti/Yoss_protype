@@ -1,5 +1,5 @@
 import { SUPPORT_CATEGORIES } from '../data/organizations';
-import { MAX_DOMAIN_SCORE } from '../data/students';
+import { MAX_DOMAIN_SCORE } from '../data/screening';
 import type { DomainScores, DomainSuggestionGroup, SupportCategory } from '../types';
 
 /**
