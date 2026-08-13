@@ -40,15 +40,13 @@ export type StaffRole =
   | 'SC・SSW'
   | '管理職・生指';
 
-/** スクリーニングの1項目。担当の自由記述・AI判定・日常の対応記録の元になる */
+/** 担当が入力した気になる情報（タブ①）と、日常の対応記録（タブ③）の元になる1件 */
 export interface ScreeningEntry {
   role: StaffRole;
   /** 項目名（タブ②の行） */
   item: string;
   /** 担当が入力した気になる情報（タブ①のカード本文） */
   note: string;
-  /** 入力があった項目にだけ付く */
-  judgement: '経過観察' | '要注意';
 }
 
 /** 日常の対応記録（タブ③・参照専用） */
@@ -62,6 +60,19 @@ export interface SupportRecord {
 export type SupportDirection = 'A' | 'B' | 'C';
 
 /**
+ * スクリーニングの入力面。実物はこの単位でタブが分かれていて、
+ * 37項目がここに割り振られている（担当が入力する項目しかそのタブに出ない）。
+ */
+export type ScreeningOwner =
+  | 'データ'
+  | '学級'
+  | '特別支援'
+  | '養護'
+  | '事務'
+  | '管理職・生指'
+  | '地域・調査';
+
+/**
  * 実物のスクリーニング37項目のうちの1項目。
  * 8領域それぞれの下に並び、点数（1点／2点）を付けると領域スコアになる。
  */
@@ -69,6 +80,8 @@ export interface ScreeningItem {
   /** 実物の通し番号（1〜37）。画面にもそのまま出す */
   id: number;
   domain: SupportCategory;
+  /** この項目を入力する面。実物のサブタブに対応する */
+  owner: ScreeningOwner;
   label: string;
   /** 1点・2点の基準。実物の説明文をそのまま出す */
   criteria: string;
