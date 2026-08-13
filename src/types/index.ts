@@ -9,7 +9,7 @@ export type SupportCategory =
   | '福祉'
   | '地域情報';
 
-// 問題タグ（スクリーニング43項目から抽出した主要カテゴリ）
+// 問題タグ（スクリーニング37項目から抽出した主要カテゴリ）
 export type ProblemTag =
   | '不登校傾向'
   | '欠席・遅刻'
@@ -31,7 +31,7 @@ export type ProblemTag =
 // 8領域それぞれのスコア（該当なしは0）
 export type DomainScores = Record<SupportCategory, number>;
 
-// スクリーニングを入力する校内の担当
+// 自由記述を書く校内の担当（スクリーニングの入力面 ScreeningOwner とは別のもの）
 export type StaffRole =
   | '担任'
   | '特別支援'
@@ -43,7 +43,7 @@ export type StaffRole =
 /** 担当が入力した気になる情報（タブ①）と、日常の対応記録（タブ③）の元になる1件 */
 export interface ScreeningEntry {
   role: StaffRole;
-  /** 項目名（タブ②の行） */
+  /** 自由記述の見出しになる項目名 */
   item: string;
   /** 担当が入力した気になる情報（タブ①のカード本文） */
   note: string;
@@ -119,8 +119,12 @@ export interface Student {
   id: string;
   grade: string;
   number: number;
+  /** スクリーニングの回答から導出する。データとして手で置かない（screening.ts 参照） */
   scores: DomainScores;
-  /** 表示専用。支援候補の抽出には使わない */
+  /**
+   * この児童のスクリーニング回答の元。ここからスクリーニング37項目の回答を組み立て、
+   * その合計が scores になる。表示（タブ①の自由記述・対応記録）の元でもある。
+   */
   problems: ProblemTag[];
   notes: string;
   currentSupport: string;

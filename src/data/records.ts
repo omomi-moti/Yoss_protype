@@ -1,15 +1,18 @@
 import type { ProblemTag, ScreeningEntry, StaffRole, Student, SupportRecord } from '../types';
 
 /**
- * スクリーニングと対応記録のデモデータ。
+ * 担当の自由記述と対応記録のデモデータ。
  *
- * 画面Dのタブ①②③が出す情報は、どれも「先生が既に入力しているもの」という設定なので、
+ * 画面Dのタブ①③が出す情報は、どちらも「先生が既に入力しているもの」という設定なので、
  * 児童ごとに別々のデータを持たず、スクリーニングの問題タグ1つから
- *   タブ①＝担当の自由記述 ／ タブ②＝スクリーニングの項目行 ／ タブ③＝日常の対応記録
- * の3つを導出する。タグを足したら3つのタブに同時に反映される。
+ *   タブ①＝担当の自由記述 ／ タブ③＝日常の対応記録
+ * を導出する。タグを足したら両方に同時に反映される。
+ *
+ * スクリーニングの項目そのもの（タブ②）は screening.ts が持つ。こちらの StaffRole は
+ * 自由記述を書く担当で、実物のスクリーニングの入力面（ScreeningOwner）とは別のもの。
  */
 
-/** タブ①のカードとタブ②の担当タブの並び */
+/** タブ①の自由記述カードの並び */
 export const STAFF_ROLES: StaffRole[] = [
   '担任',
   '特別支援',
@@ -21,7 +24,7 @@ export const STAFF_ROLES: StaffRole[] = [
 
 interface ScreeningItemDef {
   role: StaffRole;
-  /** スクリーニングの項目名（タブ②の行） */
+  /** 自由記述の見出しになる項目名 */
   item: string;
   /** 担当が入力した気になる情報（タブ①のカード本文） */
   note: string;
@@ -153,7 +156,7 @@ export function supportRecords(student: Student): SupportRecord[] {
   }));
 }
 
-/** タブ②：前学期のチーム会議で残っている記録 */
+/** タブ②の会議記録：前学期のチーム会議で残っている記録 */
 export function previousMeetingMemo(student: Student): string {
   return `${student.notes}。前学期のチーム会議で共有し、継続して見守ることを確認。`;
 }
