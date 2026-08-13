@@ -44,7 +44,7 @@ export const DIRECTION_ITEMS: DirectionItem[] = [
   { direction: 'B', index: 1, label: '家庭教育支援の活用' },
   { direction: 'B', index: 2, label: '学習支援の活用' },
   { direction: 'B', index: 3, label: '居場所、こども食堂の活用' },
-  { direction: 'B', index: 4, label: '地域の見守りの活用' },
+  { direction: 'B', index: 4, label: '単発の事業活用' },
   { direction: 'B', index: 5, label: '地域人材の活用' },
   { direction: 'B', index: 6, label: '学童保育の活用' },
   { direction: 'B', index: 7, label: '地域の福祉サービスの活用(放課後デイ等)' },
