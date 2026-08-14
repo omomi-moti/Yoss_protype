@@ -1,5 +1,5 @@
 import { DOMAIN_GROUP_LABELS, changeOf, itemGroupsOfOwner, previousAnswers } from '../data/screening';
-import { absenceDays, screeningOf } from '../data/students';
+import { absenceDays } from '../data/students';
 import type { ScreeningChange, ScreeningOwner, Student } from '../types';
 
 /** 変化ごとのチップの色。実物の凡例（悪化＝橙／良化＝青／変化なし＝灰） */
@@ -29,7 +29,7 @@ export default function ScreeningItemPanel({
   student: Student;
   owner: ScreeningOwner;
 }) {
-  const current = screeningOf(student);
+  const current = student.answers;
   const previous = previousAnswers(current);
 
   return (

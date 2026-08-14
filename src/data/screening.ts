@@ -305,27 +305,20 @@ function normalizeScore(domain: SupportCategory, raw: number): number {
 }
 
 /**
- * スクリーニングの問題タグと、実物の項目の対応。
+ * スクリーニングの問題タグ（表示用の要約）と、その根拠になる37項目の対応。
  *
- * 児童のデモデータはタグで持っているので、そこから回答を組み立てる。
- * ひとつのタグが複数の項目に効くことも、複数のタグが同じ項目に効くこともある
- * （同じ項目に当たったときは重いほうを採る）。
+ * Student.answers（37項目への回答）が真実源で、ProblemTag はここから導出する
+ * 表示専用の値。タグは複数の項目にまたがって根拠を持つことがあり、逆に同じ項目が
+ * 複数のタグの根拠になることもあるため、1項目だけでは判定できないタグ
+ * （家庭でのケア負担／保護者支援が必要）は AND_TAGS に入れ、全項目が一致したときだけ
+ * そのタグを立てる。それでも解けない重なり方（他のタグと同時に立った場合など）は
+ * 拾いきれないことがある——ベストエフォートの要約であって、37項目の代わりにはならない。
  */
-const TAG_ANSWERS: Record<ProblemTag, { id: number; value: 1 | 2 }[]> = {
-  不登校傾向: [
-    { id: 3, value: 2 },
-    { id: 4, value: 1 },
-    { id: 36, value: 1 },
-  ],
-  '欠席・遅刻': [
-    { id: 5, value: 2 },
-    { id: 4, value: 1 },
-  ],
+const TAG_EVIDENCE: Record<ProblemTag, { id: number; value: 1 | 2 }[]> = {
+  不登校傾向: [{ id: 3, value: 2 }],
+  '欠席・遅刻': [{ id: 5, value: 2 }],
   友人トラブル: [{ id: 8, value: 2 }],
-  学習の遅れ: [
-    { id: 11, value: 2 },
-    { id: 12, value: 1 },
-  ],
+  学習の遅れ: [{ id: 11, value: 2 }],
   宿題未提出: [{ id: 13, value: 2 }],
   家庭でのケア負担: [
     { id: 16, value: 2 },
@@ -336,45 +329,27 @@ const TAG_ANSWERS: Record<ProblemTag, { id: number; value: 1 | 2 }[]> = {
     { id: 17, value: 1 },
   ],
   連絡が取れない: [{ id: 17, value: 2 }],
-  発達特性: [
-    { id: 20, value: 2 },
-    { id: 19, value: 1 },
-    { id: 25, value: 1 },
-  ],
-  保健室頻回: [
-    { id: 24, value: 2 },
-    { id: 23, value: 1 },
-  ],
-  経済的困窮: [
-    { id: 27, value: 2 },
-    { id: 15, value: 1 },
-  ],
+  発達特性: [{ id: 20, value: 2 }],
+  保健室頻回: [{ id: 24, value: 2 }],
+  経済的困窮: [{ id: 27, value: 2 }],
   諸費滞納: [{ id: 28, value: 2 }],
   'SC/SSW関与': [{ id: 30, value: 2 }],
-  要対協ケース: [
-    { id: 31, value: 2 },
-    { id: 30, value: 1 },
-  ],
-  '孤立・居場所なし': [
-    { id: 36, value: 2 },
-    { id: 34, value: 1 },
-    { id: 8, value: 1 },
-  ],
+  要対協ケース: [{ id: 31, value: 2 }],
+  '孤立・居場所なし': [{ id: 36, value: 2 }],
   地域からの気になる情報: [{ id: 34, value: 2 }],
 };
 
-/** 問題タグから今学期の回答を組み立てる */
-export function answersFromTags(tags: ProblemTag[]): ScreeningAnswers {
-  const answers: ScreeningAnswers = {};
+/** 項目を複数持つタグのうち、全項目が一致したときだけ立てるもの（id16 の共有対策） */
+const AND_TAGS: ProblemTag[] = ['家庭でのケア負担', '保護者支援が必要'];
 
-  for (const tag of tags) {
-    for (const { id, value } of TAG_ANSWERS[tag]) {
-      // 同じ項目に複数のタグが当たったら重いほうを残す
-      if ((answers[id] ?? 0) < value) answers[id] = value;
-    }
-  }
-
-  return answers;
+/** 37項目の回答から、表示用の問題タグを導出する */
+export function tagsFromAnswers(answers: ScreeningAnswers): ProblemTag[] {
+  return (Object.keys(TAG_EVIDENCE) as ProblemTag[]).filter(tag => {
+    const evidence = TAG_EVIDENCE[tag];
+    return AND_TAGS.includes(tag)
+      ? evidence.every(({ id, value }) => answers[id] === value)
+      : evidence.some(({ id, value }) => answers[id] === value);
+  });
 }
 
 /**
