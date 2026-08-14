@@ -103,7 +103,7 @@ export default function MeetingDecisionPanel({
         )}
         <button
           onClick={onAddFromSupport}
-          className="w-full mt-2 flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2.5 text-[13px] font-bold text-yoss-yellow-dark hover:border-yoss-yellow transition-colors"
+          className="w-full mt-2 flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 py-2.5 text-[13px] font-bold text-yoss-link hover:border-yoss-link transition-colors"
         >
           <Plus size={14} />
           支援候補からアクションを追加

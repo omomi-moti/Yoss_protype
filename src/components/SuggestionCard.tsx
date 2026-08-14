@@ -100,7 +100,7 @@ export default function SuggestionCard({
             </p>
             {/* 一度に複数の困りごとをカバーできる支援は上位に来る。その根拠を示す */}
             {otherDomains.length > 0 && (
-              <p className="text-[11px] text-yoss-yellow-dark mt-1">
+              <p className="text-[11px] text-gray-500 mt-1">
                 この児童の {otherDomains.join('・')} にも対応
               </p>
             )}
@@ -149,7 +149,7 @@ export default function SuggestionCard({
 
               <button
                 onClick={onOpenDetail}
-                className="shrink-0 flex items-center gap-0.5 px-2.5 py-2 rounded-lg border border-gray-200 text-[11px] font-bold text-gray-600 hover:border-yoss-yellow hover:text-yoss-yellow-dark transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yoss-yellow/40"
+                className="shrink-0 flex items-center gap-0.5 px-2.5 py-2 rounded-lg border border-gray-200 text-[11px] font-bold text-gray-600 hover:border-yoss-link hover:text-yoss-link transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yoss-yellow/40"
               >
                 {/* 件数はモーダルで実際に表示されるレビュー（団体全体）の数に合わせる */}
                 {suggestion.organizationReview.count > 0

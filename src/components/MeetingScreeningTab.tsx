@@ -76,7 +76,7 @@ export default function MeetingScreeningTab({
           <div className="grid grid-cols-2 gap-3 items-start">
             <div className="border border-gray-200 rounded-xl px-4 py-3">
               <p className="text-xs text-gray-500 mb-2">前学期 スクリーニング会議 ・ 判定</p>
-              <span className="text-[13px] text-yoss-yellow-dark bg-yoss-yellow-light px-2.5 py-1.5 rounded">
+              <span className="text-[13px] text-gray-600 bg-gray-100 px-2.5 py-1.5 rounded">
                 校内チーム会議へ
               </span>
             </div>
@@ -84,10 +84,10 @@ export default function MeetingScreeningTab({
             <div className="border border-gray-200 rounded-xl px-4 py-3">
               <p className="text-xs text-gray-500 mb-2">過去のチーム会議</p>
               <div className="flex gap-1.5 flex-wrap">
-                <span className="text-[13px] text-yoss-yellow-dark border border-gray-200 px-2.5 py-1.5 rounded">
+                <span className="text-[13px] text-gray-600 border border-gray-200 px-2.5 py-1.5 rounded">
                   {currentYear} 1学期
                 </span>
-                <span className="text-[13px] text-yoss-yellow-dark border border-gray-200 px-2.5 py-1.5 rounded">
+                <span className="text-[13px] text-gray-600 border border-gray-200 px-2.5 py-1.5 rounded">
                   前年度 3学期
                 </span>
               </div>

@@ -4,9 +4,9 @@ import type { Student } from '../types';
 
 // スコアの水準ごとの文字色（児童一覧のバッジ配色と揃える）
 const SCORE_STYLES = {
-  high: 'text-red-500',
-  middle: 'text-yoss-yellow-dark',
-  low: 'text-gray-500',
+  high: 'text-yoss-dark',
+  middle: 'text-gray-600',
+  low: 'text-gray-400',
 } as const;
 
 /**

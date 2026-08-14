@@ -10,5 +10,13 @@
   --color-yoss-green: #27AE60;
   --color-yoss-blue: #3498DB;
   --color-yoss-orange: #F39C12;
+  /*
+    押すと移動・変更が起きる文字リンクの色。オレンジ（yoss-yellow-dark）は
+    白地で 2.84:1 しかなく本文の 4.5:1 に届かないうえ、選択状態・ラベル・主要
+    アクションと役割が重なって「押せるかどうか」が読めなくなっていた。
+    リンクはこの色に寄せ、オレンジの塗りは主要アクションだけに残す。
+    yoss-blue(#3498DB) は白地 3.15:1 で本文に足りないため、濃いほうを使う。
+  */
+  --color-yoss-link: #1D4ED8;
   --font-sans: "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif;
 }

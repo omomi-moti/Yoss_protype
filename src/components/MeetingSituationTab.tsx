@@ -46,7 +46,7 @@ export default function MeetingSituationTab({
               entries.length > 0 ? (
                 <div key={role} className="border border-gray-200 rounded-xl px-4 py-3.5">
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold text-yoss-yellow-dark bg-yoss-yellow-light px-2 py-1 rounded">
+                    <span className="text-[11px] font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded">
                       {role}
                     </span>
                     <span className="text-[11px] text-gray-400">{currentTerm} 入力</span>
@@ -74,7 +74,7 @@ export default function MeetingSituationTab({
           <div className="flex flex-col gap-2 mb-4">
             <div className="flex items-baseline gap-2 flex-wrap">
               <h3 className="text-sm font-bold text-yoss-dark">直近の対応記録</h3>
-              <button onClick={onGoToRecords} className="text-xs text-yoss-yellow-dark hover:underline">
+              <button onClick={onGoToRecords} className="text-xs text-yoss-link hover:underline">
                 タブ③で全件（{records.length}件）
               </button>
             </div>
@@ -84,7 +84,7 @@ export default function MeetingSituationTab({
                 <div key={record.date} className="px-4 py-2.5">
                   <div className="flex items-baseline gap-2">
                     <span className="text-[11px] text-gray-400">{record.date}</span>
-                    <span className="text-[11px] text-yoss-yellow-dark">{record.role}</span>
+                    <span className="text-[11px] text-gray-500">{record.role}</span>
                   </div>
                   <p className="text-[13px] leading-relaxed text-gray-700 mt-0.5">{record.text}</p>
                 </div>

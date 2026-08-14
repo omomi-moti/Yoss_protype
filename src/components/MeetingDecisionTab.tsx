@@ -32,7 +32,7 @@ export default function MeetingDecisionTab({
           </p>
           <button
             onClick={onOpenRecorder}
-            className="text-xs text-yoss-yellow-dark hover:underline"
+            className="text-xs text-yoss-link hover:underline"
           >
             記録をつける
           </button>

@@ -103,7 +103,7 @@ export default function ScreeningDirectionPanel({
                         <button
                           onClick={() => onGoToSupport(item)}
                           className={`mt-0.5 block text-[11px] hover:underline ${
-                            count > 0 ? 'font-bold text-yoss-yellow-dark' : 'text-red-500'
+                            count > 0 ? 'font-bold text-yoss-link' : 'text-gray-500'
                           }`}
                         >
                           {count > 0 ? `該当する登録済み支援 ${count}件` : '登録された支援がありません'}
@@ -122,7 +122,7 @@ export default function ScreeningDirectionPanel({
                   <button
                     // 特定の項目からではないので領域を渡さない。いちばん重い領域から開く
                     onClick={() => onGoToSupport()}
-                    className="mt-1.5 text-xs font-bold text-yoss-yellow-dark hover:underline"
+                    className="mt-1.5 text-xs font-bold text-yoss-link hover:underline"
                   >
                     タブ④で具体的な支援候補を見る
                   </button>

@@ -44,7 +44,7 @@ export default function MeetingRecordTab({ student }: { student: Student }) {
               className="flex gap-3 px-4 py-2.5 border-b border-gray-50 text-[13px] leading-relaxed"
             >
               <span className="shrink-0 w-12 text-gray-400">{record.date}</span>
-              <span className="shrink-0 w-20 text-yoss-yellow-dark">{record.role}</span>
+              <span className="shrink-0 w-20 text-gray-500">{record.role}</span>
               <span className="min-w-0 text-gray-700">{record.text}</span>
             </div>
           ))}

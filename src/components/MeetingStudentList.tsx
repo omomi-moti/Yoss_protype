@@ -3,9 +3,9 @@ import type { Student } from '../types';
 
 // スコアの水準ごとのバッジ配色
 const SCORE_STYLES = {
-  high: 'bg-red-50 text-red-500',
-  middle: 'bg-yellow-50 text-yoss-yellow-dark',
-  low: 'bg-gray-50 text-gray-500',
+  high: 'bg-gray-100 text-yoss-dark',
+  middle: 'bg-gray-50 text-gray-600',
+  low: 'bg-gray-50 text-gray-400',
 } as const;
 
 /**
@@ -31,7 +31,7 @@ export default function MeetingStudentList({
           onClick={() => onSelect(student.id)}
           className={`w-full text-left px-4 py-3 border-b border-gray-50 transition-colors ${
             student.id === activeStudentId
-              ? 'bg-yoss-yellow-light border-l-2 border-l-yoss-yellow'
+              ? 'bg-gray-50 border-l-2 border-l-gray-500'
               : 'hover:bg-gray-50'
           }`}
         >
@@ -51,7 +51,7 @@ export default function MeetingStudentList({
             {scoredDomains(student.scores).slice(0, 3).map(domain => (
               <span
                 key={domain}
-                className="text-[11px] font-bold bg-yoss-yellow-light text-yoss-yellow-dark px-1.5 py-0.5 rounded"
+                className="text-[11px] font-bold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded"
               >
                 {domain} {student.scores[domain]}
               </span>
