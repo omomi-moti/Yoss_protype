@@ -13,7 +13,7 @@ import type { ProblemTag, ScreeningEntry, StaffRole, Student, SupportRecord } fr
  */
 
 /** タブ①の自由記述カードの並び */
-export const STAFF_ROLES: StaffRole[] = [
+const STAFF_ROLES: StaffRole[] = [
   '担任',
   '特別支援',
   '養護',
