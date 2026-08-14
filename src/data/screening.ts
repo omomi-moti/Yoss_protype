@@ -32,7 +32,7 @@ export const DOMAIN_GROUP_LABELS: Record<SupportCategory, string> = {
   地域情報: '地域からの情報',
 };
 
-export const SCREENING_ITEMS: ScreeningItem[] = [
+const SCREENING_ITEMS: ScreeningItem[] = [
   {
     id: 1,
     domain: '学校適応',
@@ -274,7 +274,7 @@ export const SCREENING_OWNERS: ScreeningOwner[] = [
 ];
 
 /** 領域ごとの項目（表示の並びは id 順） */
-export function itemsOfDomain(domain: SupportCategory): ScreeningItem[] {
+function itemsOfDomain(domain: SupportCategory): ScreeningItem[] {
   return SCREENING_ITEMS.filter(item => item.domain === domain);
 }
 
@@ -300,7 +300,7 @@ function rawMaxOf(domain: SupportCategory): number {
 export const MAX_DOMAIN_SCORE = 10;
 
 /** 素点を10点満点に直す。領域ごとに項目数が違うので、そのままでは比べられない */
-export function normalizeScore(domain: SupportCategory, raw: number): number {
+function normalizeScore(domain: SupportCategory, raw: number): number {
   return Math.round((raw / rawMaxOf(domain)) * MAX_DOMAIN_SCORE);
 }
 

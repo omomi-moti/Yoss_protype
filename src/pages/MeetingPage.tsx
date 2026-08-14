@@ -311,6 +311,7 @@ export default function MeetingPage() {
         {tab === 'screening' && (
           <MeetingScreeningTab
             student={selectedStudent}
+            organizations={published}
             onGoToSupport={() => selectTab('support')}
           />
         )}

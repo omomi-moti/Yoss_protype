@@ -239,6 +239,21 @@ export function deriveCategories(supports: OrganizationSupport[]): SupportCatego
   return [...new Set(supports.filter(s => s.enabled).flatMap(s => s.categories))];
 }
 
+/**
+ * 指定した領域のいずれかに対応できる、現在公開中の支援の件数。
+ *
+ * 「支援の現状」B項目の隣に出す件数はここから取る。特定の児童の必要度は問わない
+ * （システム全体にその領域の支援が登録されているかどうかを見せるものなので）。
+ * 支援は複数領域を持てるので、件数は「対象の領域をひとつでも含む支援」の数であり、
+ * 領域ごとの件数の単純合計ではない（二重に数えない）。
+ */
+export function countSupportsForDomains(orgs: Organization[], domains: SupportCategory[]): number {
+  return orgs
+    .flatMap(org => org.supports)
+    .filter(support => support.enabled && support.categories.some(category => domains.includes(category)))
+    .length;
+}
+
 /** 学校レビューの平均と件数を出す */
 export function summarizeReviews(reviews: SchoolReview[]): ReviewSummary {
   if (reviews.length === 0) return { averageRating: null, count: 0 };
