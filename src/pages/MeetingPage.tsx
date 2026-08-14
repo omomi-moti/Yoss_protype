@@ -6,6 +6,7 @@ import { countSupportsPerDomain } from '../data/organizations';
 import { currentSchool } from '../data/schools';
 import {
   DIRECTIONS,
+  DIRECTION_STYLES,
   MEETING_TABS,
   actionFromSuggestion,
   currentTerm,
@@ -329,7 +330,7 @@ export default function MeetingPage() {
             onClick={() => selectTab(meetingTab.key)}
             className={`shrink-0 whitespace-nowrap px-3.5 py-2.5 text-[13px] border-b-[3px] transition-colors ${
               meetingTab.key === tab
-                ? 'border-yoss-yellow font-bold text-yoss-yellow-dark'
+                ? 'border-gray-700 font-bold text-yoss-dark'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -391,8 +392,8 @@ export default function MeetingPage() {
             return (
               <span
                 key={direction.key}
-                className={`text-xs font-bold px-2 py-1 rounded ${
-                  isChecked ? 'bg-yoss-yellow text-white' : 'bg-gray-100 text-gray-400'
+                className={`text-xs font-bold px-2 py-1 rounded border ${
+                  isChecked ? DIRECTION_STYLES[direction.key].on : DIRECTION_STYLES[direction.key].off
                 }`}
               >
                 {direction.key}

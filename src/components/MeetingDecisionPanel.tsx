@@ -1,5 +1,5 @@
 import { Check, Plus, Save, X } from 'lucide-react';
-import { DIRECTIONS } from '../data/meeting';
+import { DIRECTIONS, DIRECTION_STYLES } from '../data/meeting';
 import type { MeetingDecision, SupportDirection } from '../types';
 
 /**
@@ -45,13 +45,13 @@ export default function MeetingDecisionPanel({
                 onClick={() => onToggleDirection(direction.key)}
                 className={`flex items-center gap-2.5 rounded-lg border px-3 py-2.5 text-left transition-colors ${
                   isChecked
-                    ? 'bg-yoss-yellow-light border-yoss-yellow'
+                    ? DIRECTION_STYLES[direction.key].on
                     : 'bg-white border-gray-200 hover:border-gray-300'
                 }`}
               >
                 <span
                   className={`shrink-0 w-[18px] h-[18px] rounded flex items-center justify-center ${
-                    isChecked ? 'bg-yoss-yellow text-white' : 'border border-gray-300'
+                    isChecked ? 'bg-gray-700 text-white' : 'border border-gray-300'
                   }`}
                 >
                   {isChecked && <Check size={12} strokeWidth={3} />}

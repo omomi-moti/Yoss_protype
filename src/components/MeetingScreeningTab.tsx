@@ -51,7 +51,7 @@ export default function MeetingScreeningTab({
               onClick={() => setView(item)}
               className={`rounded-lg px-3.5 py-1.5 text-[13px] border transition-colors ${
                 item === view
-                  ? 'bg-yoss-yellow border-yoss-yellow text-white font-bold'
+                  ? 'bg-gray-700 border-gray-700 text-white font-bold'
                   : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
               }`}
             >

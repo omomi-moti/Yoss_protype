@@ -133,7 +133,7 @@ export default function SuggestionCard({
                 disabled={isRegistered}
                 className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yoss-yellow/40 ${
                   isRegistered
-                    ? 'bg-yoss-yellow-light text-yoss-yellow-dark cursor-default'
+                    ? 'bg-gray-100 text-gray-500 cursor-default'
                     : 'bg-yoss-yellow text-white hover:bg-yoss-yellow-dark'
                 }`}
               >

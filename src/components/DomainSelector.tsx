@@ -38,7 +38,7 @@ export default function DomainSelector({ scores, supportCounts, activeDomain, on
             disabled={!hasSupport}
             className={`rounded-lg border px-3 py-1.5 text-left transition-colors ${
               isActive
-                ? 'bg-yoss-yellow-light border-yoss-yellow'
+                ? 'bg-gray-100 border-gray-500'
                 : isNeeded
                 ? 'bg-white border-yoss-yellow/40 hover:border-yoss-yellow'
                 : hasSupport
