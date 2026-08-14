@@ -41,13 +41,21 @@ export const DIRECTION_ITEMS: DirectionItem[] = [
   { direction: 'A', index: 7, label: 'SCを活用したアプローチ' },
   { direction: 'A', index: 8, label: 'その他' },
 
-  { direction: 'B', index: 1, label: '家庭教育支援の活用' },
-  { direction: 'B', index: 2, label: '学習支援の活用' },
-  { direction: 'B', index: 3, label: '居場所、こども食堂の活用' },
+  /*
+   * domains は「この項目にどれだけ地域の支援が登録されているか」を数えるための対応表。
+   * 8領域はBの項目より粒度が粗いので、無理に当てはめられる項目にだけ持たせている。
+   * 対応の根拠は organizations.ts の categories の決め方（issue #25）に合わせた：
+   * 子ども食堂＝地域情報＋経済のように、団体側が「Bのどの項目に出したいか」から
+   * categories を選んでいるので、その組み立てを逆にたどっている。
+   */
+  { direction: 'B', index: 1, label: '家庭教育支援の活用', domains: ['家庭状況'] },
+  { direction: 'B', index: 2, label: '学習支援の活用', domains: ['学習'] },
+  { direction: 'B', index: 3, label: '居場所、こども食堂の活用', domains: ['地域情報'] },
+  // 単発のイベント活用は8領域のどれにも当てはまらない。集計対象外のまま残す
   { direction: 'B', index: 4, label: '単発の事業活用' },
-  { direction: 'B', index: 5, label: '地域人材の活用' },
-  { direction: 'B', index: 6, label: '学童保育の活用' },
-  { direction: 'B', index: 7, label: '地域の福祉サービスの活用(放課後デイ等)' },
+  { direction: 'B', index: 5, label: '地域人材の活用', domains: ['地域情報'] },
+  { direction: 'B', index: 6, label: '学童保育の活用', domains: ['家庭状況'] },
+  { direction: 'B', index: 7, label: '地域の福祉サービスの活用(放課後デイ等)', domains: ['福祉'] },
   { direction: 'B', index: 8, label: 'その他' },
 
   { direction: 'C', index: 1, label: '家庭児童相談室・児童相談所の活用' },
