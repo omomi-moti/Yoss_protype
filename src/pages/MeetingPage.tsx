@@ -178,13 +178,18 @@ export default function MeetingPage() {
 
   /**
    * タブの移動は必ずここを通す。
-   * 領域の選択は持ち越さない。タブを行き来したあとも、その児童のいちばん重い領域から
-   * 見直せるようにする（前に見ていた領域のまま戻ると、選び直したのか元のままなのか
+   * 領域の選択は基本持ち越さない。タブを行き来したあとも、その児童のいちばん重い領域
+   * から見直せるようにする（前に見ていた領域のまま戻ると、選び直したのか元のままなのか
    * 分からなくなる）。
+   *
+   * 例外は domain を渡したとき（「支援の現状」のB項目から遷移するとき）。
+   * どの項目から来たかが分かっているので、その領域を開いた状態でタブ④へ送る。
+   * 児童がその領域にスコアを持たない場合は activeGroup の選出でいちばん重い領域に
+   * 自然に戻る（MeetingPage の activeGroup 参照）。
    */
-  const selectTab = (next: MeetingTab) => {
+  const selectTab = (next: MeetingTab, domain?: SupportCategory) => {
     setTab(next);
-    setSelectedDomain(null);
+    setSelectedDomain(domain ?? null);
   };
 
   const selectStudent = (studentId: string) => {
@@ -312,7 +317,7 @@ export default function MeetingPage() {
           <MeetingScreeningTab
             student={selectedStudent}
             organizations={published}
-            onGoToSupport={() => selectTab('support')}
+            onGoToSupport={domain => selectTab('support', domain)}
           />
         )}
         {tab === 'decision' && (

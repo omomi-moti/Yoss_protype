@@ -1,7 +1,7 @@
 import { DIRECTIONS, DIRECTION_ITEMS, DIRECTION_STATES } from '../data/meeting';
 import { countSupportsForDomains } from '../data/organizations';
 import { parseCurrentSupport } from '../data/students';
-import type { Organization, Student, SupportDirection } from '../types';
+import type { Organization, Student, SupportCategory, SupportDirection } from '../types';
 
 /** 方向性ごとの帯の色。実物の A=赤系 / B=青系 / C=緑系 に寄せる */
 const PANEL_STYLES: Record<SupportDirection, string> = {
@@ -18,6 +18,8 @@ const PANEL_STYLES: Record<SupportDirection, string> = {
  * その項目に対応する領域に地域の支援が何件登録されているかを出す。0件の項目は
  * 「登録された支援がありません」と明示する——B にチェックを入れられても、
  * 実際にどの団体に繋ぐのかはシステムのどこにも無い、という状態をそのまま見せる。
+ * 件数を押すと、その項目に対応する領域を選んだ状態でタブ④が開く（件数だけ見せて
+ * 「じゃあ具体的に何があるのか」に答えないままにしないため）。
  *
  * 表示のみ。実物の入力そのものなので、本プロトタイプで触らせる必要がない。
  */
@@ -29,8 +31,8 @@ export default function ScreeningDirectionPanel({
   student: Student;
   /** 公開中の団体。B項目の隣の件数はここから数える */
   organizations: Organization[];
-  /** タブ④（領域と支援候補）へ送る */
-  onGoToSupport: () => void;
+  /** タブ④（領域と支援候補）へ送る。domain を渡すと、その領域を選んだ状態で開く */
+  onGoToSupport: (domain?: SupportCategory) => void;
 }) {
   // 今の方針に入っている方向性の先頭項目だけ「続」にする（デモ用の見せ方）
   const { directions } = parseCurrentSupport(student);
@@ -89,7 +91,9 @@ export default function ScreeningDirectionPanel({
                       {/* 件数は項目名の下に添える。カテゴリ名の先に何があるか（無いか）をこの位置で示す */}
                       {count !== null && (
                         <button
-                          onClick={onGoToSupport}
+                          // domains は複数持てるが、実際に登録されているのは先頭の領域に寄っている
+                          // ことが多いので、ジャンプ先はひとまず先頭の領域にする
+                          onClick={() => onGoToSupport(item.domains![0])}
                           className={`mt-0.5 text-[11px] hover:underline ${
                             count > 0 ? 'text-yoss-yellow-dark font-bold' : 'text-red-500'
                           }`}
@@ -109,7 +113,8 @@ export default function ScreeningDirectionPanel({
                     ここだけで、実際の詳細はタブ④で確認します。
                   </p>
                   <button
-                    onClick={onGoToSupport}
+                    // 特定の項目からではないので領域を渡さない。いちばん重い領域から開く
+                    onClick={() => onGoToSupport()}
                     className="mt-1.5 text-xs font-bold text-yoss-yellow-dark hover:underline"
                   >
                     タブ④で具体的な支援候補を見る
