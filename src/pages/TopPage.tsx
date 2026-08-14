@@ -62,6 +62,25 @@ export default function TopPage() {
         </p>
       </div>
 
+      {/* Proof：画面Dの「支援の現状」B項目は、分類名だけでなく実際の件数を表示する */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-8">
+        <h3 className="text-sm font-bold text-gray-400 mb-3">校内チーム会議での見え方</h3>
+        <p className="text-sm text-gray-600 leading-relaxed mb-4">
+          B の各項目は、対応する支援団体の登録件数がそのまま数字で出ます。
+          団体が登録すれば件数が増え、登録が無い項目は「登録された支援がありません」と正直に出ます。
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="border border-gray-200 rounded-lg px-4 py-3">
+            <p className="text-sm text-yoss-dark">③ 居場所、こども食堂の活用</p>
+            <p className="text-xs font-bold text-yoss-yellow-dark mt-1">該当する登録済み支援 4件</p>
+          </div>
+          <div className="border border-gray-200 rounded-lg px-4 py-3">
+            <p className="text-sm text-yoss-dark">① 家庭教育支援の活用</p>
+            <p className="text-xs font-bold text-yoss-yellow-dark mt-1">該当する登録済み支援 3件</p>
+          </div>
+        </div>
+      </div>
+
       {/* 3 screens */}
       <div className="grid gap-4">
         {cards.map(card => (
