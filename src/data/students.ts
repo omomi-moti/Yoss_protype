@@ -2,13 +2,12 @@ import type {
   DomainScores,
   MeetingSearchCriteria,
   ProblemTag,
-  ScreeningAnswers,
   Student,
   SupportCategory,
   SupportDirection,
 } from '../types';
 import { SUPPORT_CATEGORIES } from './organizations';
-import { ABSENCE_GRADES, answersFromTags, scoresFromAnswers } from './screening';
+import { ABSENCE_GRADES, scoresFromAnswers, tagsFromAnswers } from './screening';
 
 /** 合計スコアは領域別スコアから導出する */
 export function totalScore(scores: DomainScores): number {
@@ -81,18 +80,18 @@ export function scoreLevel(total: number): 'high' | 'middle' | 'low' {
  * デモ用の児童データ（スクリーニング会議で挙がった想定）。
  *
  * 会議の検索条件が機能して見えるよう、学年・クラスを散らしてある。
- * problems は表示専用だが、領域見出しの「スクリーニングでの該当」に使うため、
- * スコアが付いた領域に対応するタグを最低1つ持たせている（DOMAIN_PROBLEM_TAGS 参照）。
+ * answers（37項目への回答）がこのデータの真実源。scores と problems（表示用タグ）は
+ * どちらもここから導出するので、シードとしては持たない。
  */
-/** スコアはスクリーニングの回答から出すので、データとしては持たない */
-type StudentSeed = Omit<Student, 'scores'>;
+/** scores と problems（表示用タグ）は answers から導出するので、シードとしては持たない */
+type StudentSeed = Omit<Student, 'scores' | 'problems'>;
 
 const seeds: StudentSeed[] = [
   {
     id: 'S-001',
     grade: '5年1組',
     number: 12,
-    problems: ['経済的困窮', '孤立・居場所なし', '欠席・遅刻'],
+    answers: { 4: 1, 5: 2, 8: 1, 15: 1, 27: 2, 34: 1, 36: 2 },
     notes: '遅刻多い・身だしなみが気になる・給食をたくさん食べる',
     currentSupport: 'A（担任の声かけ）',
   },
@@ -100,7 +99,7 @@ const seeds: StudentSeed[] = [
     id: 'S-002',
     grade: '3年2組',
     number: 8,
-    problems: ['学習の遅れ', '保護者支援が必要'],
+    answers: { 11: 2, 12: 1, 16: 2, 17: 1 },
     notes: '宿題未提出が続く・保護者と連絡が取りにくい',
     currentSupport: 'A（学年主任の面談）',
   },
@@ -108,7 +107,7 @@ const seeds: StudentSeed[] = [
     id: 'S-003',
     grade: '6年1組',
     number: 23,
-    problems: ['不登校傾向', '家庭でのケア負担', '孤立・居場所なし', '保健室頻回'],
+    answers: { 3: 2, 4: 1, 8: 1, 16: 2, 23: 1, 24: 2, 30: 1, 34: 1, 36: 2 },
     notes: '欠席増加・弟の世話で疲れている様子・保健室利用増',
     currentSupport: 'A+B（SC相談開始）',
   },
@@ -116,7 +115,7 @@ const seeds: StudentSeed[] = [
     id: 'S-004',
     grade: '3年1組',
     number: 5,
-    problems: ['発達特性', '友人トラブル'],
+    answers: { 8: 2, 19: 1, 20: 2, 25: 1 },
     notes: '一斉指示が通りにくい・友達とのトラブルが増えている',
     currentSupport: 'A（担任の声かけ）',
   },
@@ -124,7 +123,7 @@ const seeds: StudentSeed[] = [
     id: 'S-005',
     grade: '4年2組',
     number: 18,
-    problems: ['保健室頻回', '連絡が取れない'],
+    answers: { 17: 2, 23: 1, 24: 2 },
     notes: '週に数回保健室で休む・家庭への連絡がつきにくい',
     currentSupport: 'A（養護教諭の見守り）',
   },
@@ -132,7 +131,7 @@ const seeds: StudentSeed[] = [
     id: 'S-006',
     grade: '5年2組',
     number: 3,
-    problems: ['諸費滞納', '宿題未提出'],
+    answers: { 13: 2, 28: 2 },
     notes: '諸費の滞納が続く・宿題の提出が不安定',
     currentSupport: 'A（担任の声かけ）',
   },
@@ -140,7 +139,7 @@ const seeds: StudentSeed[] = [
     id: 'S-007',
     grade: '6年2組',
     number: 14,
-    problems: ['学習の遅れ', '欠席・遅刻', 'SC/SSW関与', '保護者支援が必要'],
+    answers: { 4: 1, 5: 2, 11: 2, 12: 1, 16: 2, 17: 1, 30: 2 },
     notes: '遅刻が増加・学年相当の学習に大きな遅れ・SSWが関与中',
     currentSupport: 'A+B（SSW関与）',
   },
@@ -148,7 +147,7 @@ const seeds: StudentSeed[] = [
     id: 'S-008',
     grade: '4年1組',
     number: 21,
-    problems: ['家庭でのケア負担', '要対協ケース', '経済的困窮'],
+    answers: { 15: 1, 16: 2, 27: 2, 30: 1, 31: 2 },
     notes: '祖母の介護を手伝っている様子・要対協で共有済み',
     currentSupport: 'A+B（要対協で共有）',
   },
@@ -156,7 +155,7 @@ const seeds: StudentSeed[] = [
     id: 'S-009',
     grade: '3年1組',
     number: 30,
-    problems: ['孤立・居場所なし', '経済的困窮'],
+    answers: { 8: 1, 15: 1, 27: 2, 34: 1, 36: 2 },
     notes: '放課後に行き場がない・持ち物が揃わないことがある',
     currentSupport: 'A（担任の声かけ）',
   },
@@ -164,7 +163,7 @@ const seeds: StudentSeed[] = [
     id: 'S-010',
     grade: '4年3組',
     number: 9,
-    problems: ['発達特性', '友人トラブル', '宿題未提出'],
+    answers: { 8: 2, 13: 2, 19: 1, 20: 2, 25: 1 },
     notes: '一斉指示が入りにくい・友達との距離感がつかめない・宿題が出せない',
     currentSupport: 'A（担任の声かけ）',
   },
@@ -172,7 +171,7 @@ const seeds: StudentSeed[] = [
     id: 'S-011',
     grade: '5年3組',
     number: 25,
-    problems: ['不登校傾向', '孤立・居場所なし'],
+    answers: { 3: 2, 4: 1, 8: 1, 34: 1, 36: 2 },
     notes: '2学期に入って欠席が増えた・放課後の居場所がない',
     currentSupport: 'A+B（SC相談開始）',
   },
@@ -180,7 +179,7 @@ const seeds: StudentSeed[] = [
     id: 'S-012',
     grade: '6年3組',
     number: 2,
-    problems: ['経済的困窮', '家庭でのケア負担', '要対協ケース', '学習の遅れ'],
+    answers: { 11: 2, 12: 1, 15: 1, 16: 2, 27: 2, 30: 1, 31: 2 },
     notes: '諸費の滞納が続く・祖父母宅と行き来している・要対協で共有済み',
     currentSupport: 'A+B（要対協で共有）',
   },
@@ -188,7 +187,7 @@ const seeds: StudentSeed[] = [
     id: 'S-013',
     grade: '3年3組',
     number: 16,
-    problems: ['保健室頻回', '発達特性'],
+    answers: { 19: 1, 20: 2, 23: 1, 24: 2, 25: 1 },
     notes: '体調不良の訴えが多い・集団活動でつまずきやすい',
     currentSupport: 'A（養護教諭の見守り）',
   },
@@ -196,7 +195,7 @@ const seeds: StudentSeed[] = [
     id: 'S-014',
     grade: '4年1組',
     number: 11,
-    problems: ['孤立・居場所なし', '欠席・遅刻', '経済的困窮'],
+    answers: { 4: 1, 5: 2, 8: 1, 15: 1, 27: 2, 34: 1, 36: 2 },
     notes: '放課後に一人で過ごしている・遅刻が増えた',
     currentSupport: 'A（担任の声かけ）',
   },
@@ -204,7 +203,7 @@ const seeds: StudentSeed[] = [
     id: 'S-015',
     grade: '5年1組',
     number: 27,
-    problems: ['連絡が取れない', 'SC/SSW関与', '家庭でのケア負担'],
+    answers: { 16: 2, 17: 2, 30: 2 },
     notes: '保護者と連絡がつかない日が続く・SSWが関与中',
     currentSupport: 'A+B（SSW関与）',
   },
@@ -212,25 +211,21 @@ const seeds: StudentSeed[] = [
     id: 'S-016',
     grade: '6年2組',
     number: 6,
-    problems: ['学習の遅れ', '諸費滞納'],
+    answers: { 11: 2, 12: 1, 28: 2 },
     notes: '学習の遅れが目立つ・諸費の提出が遅れがち',
     currentSupport: 'A（学年主任の面談）',
   },
 ];
 
 /**
- * 8領域のスコアは、実物と同じくスクリーニングの回答から出す。
- * 回答は問題タグから組み立てるので、タグを足し引きすればスコアも動く。
+ * 8領域のスコアと表示用タグは、どちらも37項目への回答（answers）から導出する。
+ * 回答を足し引きすれば、スコアと表示用タグの両方が動く。
  */
 export const demoStudents: Student[] = seeds.map(seed => ({
   ...seed,
-  scores: scoresFromAnswers(answersFromTags(seed.problems)),
+  scores: scoresFromAnswers(seed.answers),
+  problems: tagsFromAnswers(seed.answers),
 }));
-
-/** その児童の今学期のスクリーニング回答 */
-export function screeningOf(student: Student): ScreeningAnswers {
-  return answersFromTags(student.problems);
-}
 
 /** 児童IDと学年から決まる、それらしい値を作る（デモ用・毎回同じ値になる） */
 function seededValue(seed: string, max: number): number {

@@ -39,8 +39,8 @@ npx tsc -b --noEmit    # 型チェックだけ
 
 - `types/index.ts` … 型はすべてここ。新しい型を作る前に必ず既存を確認する
 - `data/organizations.ts` … 支援団体のシードと、団体まわりの導出関数
-- `data/screening.ts` … スクリーニング37項目と、回答から8領域スコアを出す導出関数
-- `data/students.ts` … 児童のデモデータ。スコアは持たず `screening.ts` から導出する
+- `data/screening.ts` … スクリーニング37項目と、回答から8領域スコア・問題タグを出す導出関数
+- `data/students.ts` … 児童のデモデータ。スコアと問題タグは持たず `screening.ts` から導出する
 - `data/records.ts` … 担当の自由記述・対応記録のデモデータ（問題タグから導出）
 - `data/meeting.ts` … 会議の定数（年度・学期・方向性A/B/C・支援の現状の項目・タブ）
 - `data/mockData.ts` … 画面Dの候補を組み立てる `getSuggestions()` と、領域ごとのグループ化
@@ -48,9 +48,12 @@ npx tsc -b --noEmit    # 型チェックだけ
 - `data/organizationStore.ts` … 団体データの永続化（localStorage）
 - `hooks/useOrganizationStore.ts` … 上記を `useSyncExternalStore` で購読する
 
-**スコアの向き**：`Student.problems`（問題タグ）→ スクリーニング37項目の回答 → 8領域スコア。
-実物と同じく「37項目の合計が領域スコア」なので、スコアを手で置かない。タグを足し引きすれば
-スコアも支援候補も動く。領域ごとの満点は項目数で変わるため、表示のときだけ10点満点に正規化する。
+**スコアの向き**：`Student.answers`（37項目への回答）が真実源。そこから8領域スコアと、
+`Student.problems`（問題タグ、表示専用）の両方を導出する。実物と同じく「37項目の合計が
+領域スコア」なので、スコアを手で置かない。領域ごとの満点は項目数で変わるため、表示のときだけ
+10点満点に正規化する。`problems` は37項目からのベストエフォートな要約で、複数タグが同じ項目を
+根拠にすることがあるため完全な逆算はできない（`screening.ts` の `tagsFromAnswers` 参照）。
+デモデータを変えるときは `answers` を編集する（`problems` はここから自動で付く）。
 
 画面をまたぐ状態は `organizationStore`、画面固有の選択状態は各ページの `useState`。
 

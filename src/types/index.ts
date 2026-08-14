@@ -126,11 +126,15 @@ export interface Student {
   id: string;
   grade: string;
   number: number;
-  /** スクリーニングの回答から導出する。データとして手で置かない（screening.ts 参照） */
+  /** スクリーニング37項目への回答。この児童データの真実源（screening.ts 参照） */
+  answers: ScreeningAnswers;
+  /** answers の合計から導出する。データとして手で置かない（screening.ts 参照） */
   scores: DomainScores;
   /**
-   * この児童のスクリーニング回答の元。ここからスクリーニング37項目の回答を組み立て、
-   * その合計が scores になる。表示（タブ①の自由記述・対応記録）の元でもある。
+   * answers から導出する表示用のタグ（screening.ts の tagsFromAnswers）。
+   * タブ①の自由記述・タブ③の対応記録・レビューとの関連度判定に使う。
+   * 37項目は複数のタグに重なって効くことがあり、完全な逆算はできないため、
+   * 主要な該当を拾うベストエフォートの要約であって、37項目の代わりにはならない。
    */
   problems: ProblemTag[];
   notes: string;
