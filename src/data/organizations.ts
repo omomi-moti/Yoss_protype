@@ -240,6 +240,20 @@ export function deriveCategories(supports: OrganizationSupport[]): SupportCatego
 }
 
 /**
+ * 領域の並びを8領域の順（＝スクリーニングの項目番号の順）に揃える。表示専用。
+ *
+ * 支援の categories は登録順のままなので、同じ画面に「地域情報・経済」と
+ * 「経済・地域情報」が混在する。読む側は毎回並びを読み直すことになるので、
+ * 画面に出すときだけこの順に直す。
+ *
+ * categories 自体は並べ替えない。先頭が「主たる領域」で、画面Aでどの欄の下に
+ * 並ぶかを決めている（OrganizationSupport.categories 参照）。
+ */
+export function sortByDomainOrder(domains: SupportCategory[]): SupportCategory[] {
+  return SUPPORT_CATEGORIES.filter(category => domains.includes(category));
+}
+
+/**
  * 8領域それぞれに、現在公開中の支援が何件あるか。児童の必要度は問わない。
  *
  * タブ④の領域タイルを8つとも出すために使う。児童のスコアが0の領域でも

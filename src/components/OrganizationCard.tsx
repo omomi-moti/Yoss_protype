@@ -1,6 +1,6 @@
 import { Star, MapPin, Tag, ChevronDown, ChevronUp, MessageSquare, Crown, Phone, Mail, Globe } from 'lucide-react';
 import ReviewList from './ReviewList';
-import { summarizeReviews } from '../data/organizations';
+import { sortByDomainOrder, summarizeReviews } from '../data/organizations';
 import type { Organization, OrganizationType } from '../types';
 
 // 種別ごとのバッジ配色
@@ -83,7 +83,7 @@ export default function OrganizationCard({ org, isExpanded, onToggle }: {
 
         {/* Category tags */}
         <div className="flex flex-wrap gap-1.5 mb-3">
-          {org.categories.map(category => (
+          {sortByDomainOrder(org.categories).map(category => (
             <span key={category} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md">
               {category}
             </span>
@@ -131,7 +131,7 @@ export default function OrganizationCard({ org, isExpanded, onToggle }: {
               {enabledSupports.map(s => (
                 <div key={s.id} className="bg-gray-50 rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    {s.categories.map(category => (
+                    {sortByDomainOrder(s.categories).map(category => (
                       <span
                         key={category}
                         className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-yoss-yellow-light text-yoss-yellow-dark"
