@@ -27,6 +27,7 @@ import MeetingSupportTab from '../components/MeetingSupportTab';
 import SupportDetailModal from '../components/SupportDetailModal';
 import { filterStudents, specialistScore, studentsByScore } from '../data/students';
 import type {
+  DirectionItem,
   MeetingDecision,
   MeetingSearchCriteria,
   MeetingTab,
@@ -75,6 +76,13 @@ export default function MeetingPage() {
   const [tab, setTab] = useState<MeetingTab>('situation');
   const [isListOpen, setIsListOpen] = useState(false);
   const [isDecisionOpen, setIsDecisionOpen] = useState(false);
+  /*
+    「支援の現状」のB項目から来たときの絞り込み。
+    B項目は8領域より細かいので、領域だけで開くと項目に出した件数と中身が食い違う
+    （B①家庭教育支援は2件だが、家庭状況の領域には3件ある）。押した項目の支援だけに
+    絞り、解除すれば領域全体に戻せるようにする。
+  */
+  const [directionFilter, setDirectionFilter] = useState<DirectionItem | null>(null);
   // 会議の決定は児童ごとに持つ。児童を移動しても、戻れば決めたことが残っている
   const [decisions, setDecisions] = useState<Record<string, MeetingDecision>>({});
 
@@ -99,8 +107,18 @@ export default function MeetingPage() {
   }, [selectedStudent, published, selectedDomain]);
 
   // 未選択のとき、および児童を切り替えて選択中の領域が無くなったときは最重要領域に戻す
-  const activeGroup =
+  const domainGroup =
     domainGroups.find(group => group.domain === selectedDomain) ?? domainGroups[0];
+
+  // B項目から来ているときは、その項目の支援だけに絞る
+  const activeGroup = useMemo(() => {
+    if (!domainGroup || !directionFilter?.supportIds) return domainGroup;
+    const ids = new Set(directionFilter.supportIds);
+    return {
+      ...domainGroup,
+      suggestions: domainGroup.suggestions.filter(s => ids.has(s.supportId)),
+    };
+  }, [domainGroup, directionFilter]);
 
   // 8領域すべてのタイルを出すための件数。児童のスコアとは無関係に数える
   const supportCounts = useMemo(() => countSupportsPerDomain(published), [published]);
@@ -200,12 +218,25 @@ export default function MeetingPage() {
   const selectTab = (next: MeetingTab, domain?: SupportCategory) => {
     setTab(next);
     setSelectedDomain(domain ?? null);
+    setDirectionFilter(null);
+  };
+
+  /**
+   * 「支援の現状」のB項目からタブ④へ送る。
+   * 項目に対応する領域を開いたうえで、その項目の支援だけに絞る。項目を渡さないときは
+   * 絞り込みなしで、いちばん重い領域から開く。
+   */
+  const openSupportFor = (item?: DirectionItem) => {
+    setTab('support');
+    setSelectedDomain(item?.domains?.[0] ?? null);
+    setDirectionFilter(item ?? null);
   };
 
   const selectStudent = (studentId: string) => {
     setSelectedStudentId(studentId);
     // 児童を切り替えたら、その子の最重要領域から見せる
     setSelectedDomain(null);
+    setDirectionFilter(null);
     // タブは①に戻す。前の児童のタブ位置のままだと、状況を確認しないまま
     // 支援候補や対応記録に進んでしまう
     setTab('situation');
@@ -317,8 +348,15 @@ export default function MeetingPage() {
             groups={domainGroups}
             activeGroup={activeGroup}
             supportCounts={supportCounts}
+            directionFilter={directionFilter}
+            unfilteredCount={domainGroup?.suggestions.length ?? 0}
+            onClearDirectionFilter={() => setDirectionFilter(null)}
             registeredSupportIds={registeredSupportIds}
-            onSelectDomain={setSelectedDomain}
+            // 領域を選び直したら、B項目の絞り込みは外す
+            onSelectDomain={domain => {
+              setSelectedDomain(domain);
+              setDirectionFilter(null);
+            }}
             onOpenDetail={setDetailSupportId}
             onRegisterAction={registerAction}
           />
@@ -328,7 +366,7 @@ export default function MeetingPage() {
           <MeetingScreeningTab
             student={selectedStudent}
             organizations={published}
-            onGoToSupport={domain => selectTab('support', domain)}
+            onGoToSupport={openSupportFor}
           />
         )}
         {tab === 'decision' && (

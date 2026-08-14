@@ -1,7 +1,7 @@
 import { DIRECTIONS, DIRECTION_ITEMS, DIRECTION_STATES } from '../data/meeting';
 import { countSupportsByIds } from '../data/organizations';
 import { parseCurrentSupport } from '../data/students';
-import type { Organization, Student, SupportCategory, SupportDirection } from '../types';
+import type { DirectionItem, Organization, Student, SupportDirection } from '../types';
 
 /** 方向性ごとの帯の色。実物の A=赤系 / B=青系 / C=緑系 に寄せる */
 const PANEL_STYLES: Record<SupportDirection, string> = {
@@ -20,9 +20,9 @@ const PANEL_STYLES: Record<SupportDirection, string> = {
  * 拾ってしまうため）。0件の項目は「登録された支援がありません」と明示する——B に
  * チェックを入れられても、実際にどの団体に繋ぐのかはシステムのどこにも無い、
  * という状態をそのまま見せる。
- * 1件以上あるときだけ、件数を押すとその項目に対応する領域を選んだ状態でタブ④が開く
- * （0件の項目は、押しても8領域単位では別の何かが出てきてしまい誤解を招くため
- * 押せなくしている）。
+ * 件数を押すと、その項目に対応する領域を開いたうえで、その項目の支援だけに絞った
+ * 状態でタブ④が開く。0件の項目も押せる——絞り込んだ先も0件になるので、
+ * 「0件と書いてあるのに別の何かが出てくる」ことにはならない。
  *
  * 表示のみ。実物の入力そのものなので、本プロトタイプで触らせる必要がない。
  */
@@ -34,8 +34,11 @@ export default function ScreeningDirectionPanel({
   student: Student;
   /** 公開中の団体。B項目の隣の件数はここから数える */
   organizations: Organization[];
-  /** タブ④（領域と支援候補）へ送る。domain を渡すと、その領域を選んだ状態で開く */
-  onGoToSupport: (domain?: SupportCategory) => void;
+  /**
+   * タブ④（領域と支援候補）へ送る。項目を渡すと、その項目に対応する領域を開き、
+   * さらにその項目の支援だけに絞り込む
+   */
+  onGoToSupport: (item?: DirectionItem) => void;
 }) {
   // 今の方針に入っている方向性の先頭項目だけ「続」にする（デモ用の見せ方）
   const { directions } = parseCurrentSupport(student);
@@ -91,21 +94,20 @@ export default function ScreeningDirectionPanel({
                         </div>
                       </div>
 
-                      {/* 件数は項目名の下に添える。カテゴリ名の先に何があるか（無いか）をこの位置で示す */}
+                      {/*
+                        件数は項目名の下に添える。カテゴリ名の先に何があるか（無いか）を
+                        この位置で示す。0件でも押せる——押した先はこの項目で絞り込むので、
+                        「0件と書いてあるのに別の何かが出てくる」ことにはならない。
+                      */}
                       {count !== null && (
-                        count > 0 ? (
-                          <button
-                            // domains は複数持てるが、ジャンプ先はひとまず先頭の領域にする
-                            onClick={() => onGoToSupport(item.domains![0])}
-                            className="mt-0.5 text-[11px] font-bold text-yoss-yellow-dark hover:underline"
-                          >
-                            該当する登録済み支援 {count}件
-                          </button>
-                        ) : (
-                          <span className="mt-0.5 block text-[11px] text-red-500">
-                            登録された支援がありません
-                          </span>
-                        )
+                        <button
+                          onClick={() => onGoToSupport(item)}
+                          className={`mt-0.5 block text-[11px] hover:underline ${
+                            count > 0 ? 'font-bold text-yoss-yellow-dark' : 'text-red-500'
+                          }`}
+                        >
+                          {count > 0 ? `該当する登録済み支援 ${count}件` : '登録された支援がありません'}
+                        </button>
                       )}
                     </div>
                   );

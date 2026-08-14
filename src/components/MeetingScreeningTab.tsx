@@ -5,7 +5,7 @@ import { SCREENING_OWNERS } from '../data/screening';
 import MeetingStudentSummary from './MeetingStudentSummary';
 import ScreeningDirectionPanel from './ScreeningDirectionPanel';
 import ScreeningItemPanel from './ScreeningItemPanel';
-import type { Organization, ScreeningOwner, Student, SupportCategory } from '../types';
+import type { DirectionItem, Organization, ScreeningOwner, Student } from '../types';
 
 /**
  * タブ②のサブタブ。実物のスクリーニング画面の並びに合わせる。
@@ -34,8 +34,8 @@ export default function MeetingScreeningTab({
   student: Student;
   /** 公開中の団体。「支援の現状」B項目の隣の件数を数えるのに使う */
   organizations: Organization[];
-  /** タブ④へ送る。domain を渡すと、その領域を選んだ状態で開く */
-  onGoToSupport: (domain?: SupportCategory) => void;
+  /** タブ④へ送る。B項目を渡すと、その領域を開いたうえで項目の支援だけに絞り込む */
+  onGoToSupport: (item?: DirectionItem) => void;
 }) {
   const [view, setView] = useState<ScreeningView>('支援の現状');
 
