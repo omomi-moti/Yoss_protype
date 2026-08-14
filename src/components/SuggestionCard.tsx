@@ -1,4 +1,5 @@
 import { Phone, ChevronRight, Check } from 'lucide-react';
+import { sortByDomainOrder } from '../data/organizations';
 import StarRating from './StarRating';
 import SupportConditions from './SupportConditions';
 import type { SupportCategory, SupportSuggestion } from '../types';
@@ -34,7 +35,10 @@ export default function SuggestionCard({
   onOpenDetail: () => void;
   onRegister: () => void;
 }) {
-  const otherDomains = suggestion.matchedDomains.filter(domain => domain !== activeDomain);
+  // 並びは8領域の順に揃える。カードごとに順が違うと、毎回読み直すことになる
+  const otherDomains = sortByDomainOrder(
+    suggestion.matchedDomains.filter(domain => domain !== activeDomain)
+  );
 
   // null＝まだどの学校からもレビューがない。枠線と評価の出し分けは同じ条件で動かす
   const rating = suggestion.review.averageRating;

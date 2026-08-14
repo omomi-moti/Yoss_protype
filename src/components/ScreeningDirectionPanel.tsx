@@ -1,7 +1,7 @@
 import { DIRECTIONS, DIRECTION_ITEMS, DIRECTION_STATES } from '../data/meeting';
-import { countSupportsForDomains } from '../data/organizations';
+import { countSupportsByIds } from '../data/organizations';
 import { parseCurrentSupport } from '../data/students';
-import type { Organization, Student, SupportDirection } from '../types';
+import type { DirectionItem, Organization, Student, SupportDirection } from '../types';
 
 /** 方向性ごとの帯の色。実物の A=赤系 / B=青系 / C=緑系 に寄せる */
 const PANEL_STYLES: Record<SupportDirection, string> = {
@@ -15,9 +15,14 @@ const PANEL_STYLES: Record<SupportDirection, string> = {
  *
  * 実物と同じく、方向性 A/B/C の下に項目を並べ、新／続／拒 を記録する面。
  * 本プロトタイプが指している問題がそのまま見える場所でもある。B の項目の隣には、
- * その項目に対応する領域に地域の支援が何件登録されているかを出す。0件の項目は
- * 「登録された支援がありません」と明示する——B にチェックを入れられても、
- * 実際にどの団体に繋ぐのかはシステムのどこにも無い、という状態をそのまま見せる。
+ * その項目に実際に対応する支援が何件登録されているかを出す（DirectionItem.supportIds
+ * で個別に対応づけている。8領域だけで数えると、同じ領域を共有する別の項目の支援まで
+ * 拾ってしまうため）。0件の項目は「登録された支援がありません」と明示する——B に
+ * チェックを入れられても、実際にどの団体に繋ぐのかはシステムのどこにも無い、
+ * という状態をそのまま見せる。
+ * 件数を押すと、その項目に対応する領域を開いたうえで、その項目の支援だけに絞った
+ * 状態でタブ④が開く。0件の項目も押せる——絞り込んだ先も0件になるので、
+ * 「0件と書いてあるのに別の何かが出てくる」ことにはならない。
  *
  * 表示のみ。実物の入力そのものなので、本プロトタイプで触らせる必要がない。
  */
@@ -29,8 +34,11 @@ export default function ScreeningDirectionPanel({
   student: Student;
   /** 公開中の団体。B項目の隣の件数はここから数える */
   organizations: Organization[];
-  /** タブ④（領域と支援候補）へ送る */
-  onGoToSupport: () => void;
+  /**
+   * タブ④（領域と支援候補）へ送る。項目を渡すと、その項目に対応する領域を開き、
+   * さらにその項目の支援だけに絞り込む
+   */
+  onGoToSupport: (item?: DirectionItem) => void;
 }) {
   // 今の方針に入っている方向性の先頭項目だけ「続」にする（デモ用の見せ方）
   const { directions } = parseCurrentSupport(student);
@@ -60,8 +68,8 @@ export default function ScreeningDirectionPanel({
 
               <div className="px-4 py-2">
                 {items.map(item => {
-                  // B以外、および domains を持たない項目（単発の事業活用／その他）は集計しない
-                  const count = item.domains ? countSupportsForDomains(organizations, item.domains) : null;
+                  // supportIds を持たない項目（単発の事業活用／その他）は集計対象外
+                  const count = item.supportIds ? countSupportsByIds(organizations, item.supportIds) : null;
 
                   return (
                     <div key={item.index} className="py-1.5">
@@ -86,12 +94,16 @@ export default function ScreeningDirectionPanel({
                         </div>
                       </div>
 
-                      {/* 件数は項目名の下に添える。カテゴリ名の先に何があるか（無いか）をこの位置で示す */}
+                      {/*
+                        件数は項目名の下に添える。カテゴリ名の先に何があるか（無いか）を
+                        この位置で示す。0件でも押せる——押した先はこの項目で絞り込むので、
+                        「0件と書いてあるのに別の何かが出てくる」ことにはならない。
+                      */}
                       {count !== null && (
                         <button
-                          onClick={onGoToSupport}
-                          className={`mt-0.5 text-[11px] hover:underline ${
-                            count > 0 ? 'text-yoss-yellow-dark font-bold' : 'text-red-500'
+                          onClick={() => onGoToSupport(item)}
+                          className={`mt-0.5 block text-[11px] hover:underline ${
+                            count > 0 ? 'font-bold text-yoss-yellow-dark' : 'text-red-500'
                           }`}
                         >
                           {count > 0 ? `該当する登録済み支援 ${count}件` : '登録された支援がありません'}
@@ -105,11 +117,11 @@ export default function ScreeningDirectionPanel({
               {direction.key === 'B' && (
                 <div className="px-4 py-3 border-t border-yoss-yellow/40">
                   <p className="text-xs text-gray-600 leading-relaxed">
-                    件数は8領域のうち近いものから数えた目安です。分類名の隣に団体名が出るのは
-                    ここだけで、実際の詳細はタブ④で確認します。
+                    分類名の隣に団体名が出るのはここだけです。実際の詳細はタブ④で確認します。
                   </p>
                   <button
-                    onClick={onGoToSupport}
+                    // 特定の項目からではないので領域を渡さない。いちばん重い領域から開く
+                    onClick={() => onGoToSupport()}
                     className="mt-1.5 text-xs font-bold text-yoss-yellow-dark hover:underline"
                   >
                     タブ④で具体的な支援候補を見る

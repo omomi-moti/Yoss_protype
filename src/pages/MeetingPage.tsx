@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ClipboardList, SlidersHorizontal } from 'lucide-react';
 import { getSuggestions, groupSuggestionsByDomain } from '../data/mockData';
 import { useOrganizationStore } from '../hooks/useOrganizationStore';
+import { countSupportsPerDomain } from '../data/organizations';
 import { currentSchool } from '../data/schools';
 import {
   DIRECTIONS,
@@ -26,6 +27,7 @@ import MeetingSupportTab from '../components/MeetingSupportTab';
 import SupportDetailModal from '../components/SupportDetailModal';
 import { filterStudents, specialistScore, studentsByScore } from '../data/students';
 import type {
+  DirectionItem,
   MeetingDecision,
   MeetingSearchCriteria,
   MeetingTab,
@@ -74,6 +76,13 @@ export default function MeetingPage() {
   const [tab, setTab] = useState<MeetingTab>('situation');
   const [isListOpen, setIsListOpen] = useState(false);
   const [isDecisionOpen, setIsDecisionOpen] = useState(false);
+  /*
+    「支援の現状」のB項目から来たときの絞り込み。
+    B項目は8領域より細かいので、領域だけで開くと項目に出した件数と中身が食い違う
+    （B①家庭教育支援は2件だが、家庭状況の領域には3件ある）。押した項目の支援だけに
+    絞り、解除すれば領域全体に戻せるようにする。
+  */
+  const [directionFilter, setDirectionFilter] = useState<DirectionItem | null>(null);
   // 会議の決定は児童ごとに持つ。児童を移動しても、戻れば決めたことが残っている
   const [decisions, setDecisions] = useState<Record<string, MeetingDecision>>({});
 
@@ -84,16 +93,35 @@ export default function MeetingPage() {
   const selectedStudent =
     results.find(student => student.id === selectedStudentId) ?? results[0];
 
-  // 支援候補は児童の8領域スコアと、団体が公開している支援から導出する
+  /*
+    支援候補は児童の8領域スコアと、団体が公開している支援から導出する。
+    selectedDomain を渡すのは、「支援の現状」のB項目から領域を名指しで開いたとき、
+    その領域のスコアが0でも候補を出すため（mockData.ts の targetDomains 参照）。
+    タブ④のタイルから選んだ場合はスコアが付いた領域しか押せないので、渡しても何も変わらない。
+  */
   const domainGroups = useMemo(() => {
     if (!selectedStudent) return [];
-    const suggestions = getSuggestions(selectedStudent.scores, published, currentSchool);
-    return groupSuggestionsByDomain(suggestions, selectedStudent.scores);
-  }, [selectedStudent, published]);
+    const open = selectedDomain ?? undefined;
+    const suggestions = getSuggestions(selectedStudent.scores, published, currentSchool, open);
+    return groupSuggestionsByDomain(suggestions, selectedStudent.scores, open);
+  }, [selectedStudent, published, selectedDomain]);
 
   // 未選択のとき、および児童を切り替えて選択中の領域が無くなったときは最重要領域に戻す
-  const activeGroup =
+  const domainGroup =
     domainGroups.find(group => group.domain === selectedDomain) ?? domainGroups[0];
+
+  // B項目から来ているときは、その項目の支援だけに絞る
+  const activeGroup = useMemo(() => {
+    if (!domainGroup || !directionFilter?.supportIds) return domainGroup;
+    const ids = new Set(directionFilter.supportIds);
+    return {
+      ...domainGroup,
+      suggestions: domainGroup.suggestions.filter(s => ids.has(s.supportId)),
+    };
+  }, [domainGroup, directionFilter]);
+
+  // 8領域すべてのタイルを出すための件数。児童のスコアとは無関係に数える
+  const supportCounts = useMemo(() => countSupportsPerDomain(published), [published]);
 
   // 詳細モーダルの対象。支援と、それを提供する団体の両方が要る
   const detail = useMemo(() => {
@@ -178,19 +206,37 @@ export default function MeetingPage() {
 
   /**
    * タブの移動は必ずここを通す。
-   * 領域の選択は持ち越さない。タブを行き来したあとも、その児童のいちばん重い領域から
-   * 見直せるようにする（前に見ていた領域のまま戻ると、選び直したのか元のままなのか
+   * 領域の選択は基本持ち越さない。タブを行き来したあとも、その児童のいちばん重い領域
+   * から見直せるようにする（前に見ていた領域のまま戻ると、選び直したのか元のままなのか
    * 分からなくなる）。
+   *
+   * 例外は domain を渡したとき（「支援の現状」のB項目から遷移するとき）。
+   * どの項目から来たかが分かっているので、その領域を開いた状態でタブ④へ送る。
+   * 児童がその領域にスコアを持たない場合は activeGroup の選出でいちばん重い領域に
+   * 自然に戻る（MeetingPage の activeGroup 参照）。
    */
-  const selectTab = (next: MeetingTab) => {
+  const selectTab = (next: MeetingTab, domain?: SupportCategory) => {
     setTab(next);
-    setSelectedDomain(null);
+    setSelectedDomain(domain ?? null);
+    setDirectionFilter(null);
+  };
+
+  /**
+   * 「支援の現状」のB項目からタブ④へ送る。
+   * 項目に対応する領域を開いたうえで、その項目の支援だけに絞る。項目を渡さないときは
+   * 絞り込みなしで、いちばん重い領域から開く。
+   */
+  const openSupportFor = (item?: DirectionItem) => {
+    setTab('support');
+    setSelectedDomain(item?.domains?.[0] ?? null);
+    setDirectionFilter(item ?? null);
   };
 
   const selectStudent = (studentId: string) => {
     setSelectedStudentId(studentId);
     // 児童を切り替えたら、その子の最重要領域から見せる
     setSelectedDomain(null);
+    setDirectionFilter(null);
     // タブは①に戻す。前の児童のタブ位置のままだと、状況を確認しないまま
     // 支援候補や対応記録に進んでしまう
     setTab('situation');
@@ -301,8 +347,16 @@ export default function MeetingPage() {
             student={selectedStudent}
             groups={domainGroups}
             activeGroup={activeGroup}
+            supportCounts={supportCounts}
+            directionFilter={directionFilter}
+            unfilteredCount={domainGroup?.suggestions.length ?? 0}
+            onClearDirectionFilter={() => setDirectionFilter(null)}
             registeredSupportIds={registeredSupportIds}
-            onSelectDomain={setSelectedDomain}
+            // 領域を選び直したら、B項目の絞り込みは外す
+            onSelectDomain={domain => {
+              setSelectedDomain(domain);
+              setDirectionFilter(null);
+            }}
             onOpenDetail={setDetailSupportId}
             onRegisterAction={registerAction}
           />
@@ -312,7 +366,7 @@ export default function MeetingPage() {
           <MeetingScreeningTab
             student={selectedStudent}
             organizations={published}
-            onGoToSupport={() => selectTab('support')}
+            onGoToSupport={openSupportFor}
           />
         )}
         {tab === 'decision' && (

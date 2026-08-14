@@ -4,7 +4,7 @@ import Modal from './Modal';
 import ReviewList from './ReviewList';
 import StarRating from './StarRating';
 import SupportConditions from './SupportConditions';
-import { sortReviewsByRelevance } from '../data/organizations';
+import { sortByDomainOrder, sortReviewsByRelevance } from '../data/organizations';
 import type { Organization, ProblemTag, SupportSuggestion } from '../types';
 
 /**
@@ -39,7 +39,7 @@ export default function SupportDetailModal({ suggestion, organization, studentTa
               {suggestion.supportName}
             </h2>
             {/* この児童のどの領域に効く支援なのか。合致しなかった領域は会議の判断に要らない */}
-            {suggestion.matchedDomains.map(domain => (
+            {sortByDomainOrder(suggestion.matchedDomains).map(domain => (
               <span
                 key={domain}
                 className="text-[10px] font-bold bg-yoss-yellow-light text-yoss-yellow-dark px-2 py-0.5 rounded"
