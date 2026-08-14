@@ -1,5 +1,5 @@
 import { DIRECTIONS, DIRECTION_ITEMS, DIRECTION_STATES } from '../data/meeting';
-import { countSupportsForDomains } from '../data/organizations';
+import { countSupportsByIds } from '../data/organizations';
 import { parseCurrentSupport } from '../data/students';
 import type { Organization, Student, SupportCategory, SupportDirection } from '../types';
 
@@ -15,11 +15,14 @@ const PANEL_STYLES: Record<SupportDirection, string> = {
  *
  * 実物と同じく、方向性 A/B/C の下に項目を並べ、新／続／拒 を記録する面。
  * 本プロトタイプが指している問題がそのまま見える場所でもある。B の項目の隣には、
- * その項目に対応する領域に地域の支援が何件登録されているかを出す。0件の項目は
- * 「登録された支援がありません」と明示する——B にチェックを入れられても、
- * 実際にどの団体に繋ぐのかはシステムのどこにも無い、という状態をそのまま見せる。
- * 件数を押すと、その項目に対応する領域を選んだ状態でタブ④が開く（件数だけ見せて
- * 「じゃあ具体的に何があるのか」に答えないままにしないため）。
+ * その項目に実際に対応する支援が何件登録されているかを出す（DirectionItem.supportIds
+ * で個別に対応づけている。8領域だけで数えると、同じ領域を共有する別の項目の支援まで
+ * 拾ってしまうため）。0件の項目は「登録された支援がありません」と明示する——B に
+ * チェックを入れられても、実際にどの団体に繋ぐのかはシステムのどこにも無い、
+ * という状態をそのまま見せる。
+ * 1件以上あるときだけ、件数を押すとその項目に対応する領域を選んだ状態でタブ④が開く
+ * （0件の項目は、押しても8領域単位では別の何かが出てきてしまい誤解を招くため
+ * 押せなくしている）。
  *
  * 表示のみ。実物の入力そのものなので、本プロトタイプで触らせる必要がない。
  */
@@ -62,8 +65,8 @@ export default function ScreeningDirectionPanel({
 
               <div className="px-4 py-2">
                 {items.map(item => {
-                  // B以外、および domains を持たない項目（単発の事業活用／その他）は集計しない
-                  const count = item.domains ? countSupportsForDomains(organizations, item.domains) : null;
+                  // supportIds を持たない項目（単発の事業活用／その他）は集計対象外
+                  const count = item.supportIds ? countSupportsByIds(organizations, item.supportIds) : null;
 
                   return (
                     <div key={item.index} className="py-1.5">
@@ -90,16 +93,19 @@ export default function ScreeningDirectionPanel({
 
                       {/* 件数は項目名の下に添える。カテゴリ名の先に何があるか（無いか）をこの位置で示す */}
                       {count !== null && (
-                        <button
-                          // domains は複数持てるが、実際に登録されているのは先頭の領域に寄っている
-                          // ことが多いので、ジャンプ先はひとまず先頭の領域にする
-                          onClick={() => onGoToSupport(item.domains![0])}
-                          className={`mt-0.5 text-[11px] hover:underline ${
-                            count > 0 ? 'text-yoss-yellow-dark font-bold' : 'text-red-500'
-                          }`}
-                        >
-                          {count > 0 ? `該当する登録済み支援 ${count}件` : '登録された支援がありません'}
-                        </button>
+                        count > 0 ? (
+                          <button
+                            // domains は複数持てるが、ジャンプ先はひとまず先頭の領域にする
+                            onClick={() => onGoToSupport(item.domains![0])}
+                            className="mt-0.5 text-[11px] font-bold text-yoss-yellow-dark hover:underline"
+                          >
+                            該当する登録済み支援 {count}件
+                          </button>
+                        ) : (
+                          <span className="mt-0.5 block text-[11px] text-red-500">
+                            登録された支援がありません
+                          </span>
+                        )
                       )}
                     </div>
                   );
@@ -109,8 +115,7 @@ export default function ScreeningDirectionPanel({
               {direction.key === 'B' && (
                 <div className="px-4 py-3 border-t border-yoss-yellow/40">
                   <p className="text-xs text-gray-600 leading-relaxed">
-                    件数は8領域のうち近いものから数えた目安です。分類名の隣に団体名が出るのは
-                    ここだけで、実際の詳細はタブ④で確認します。
+                    分類名の隣に団体名が出るのはここだけです。実際の詳細はタブ④で確認します。
                   </p>
                   <button
                     // 特定の項目からではないので領域を渡さない。いちばん重い領域から開く

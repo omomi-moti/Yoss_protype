@@ -1,4 +1,10 @@
-import type { DomainScores, DomainSuggestionGroup, Organization, SupportSuggestion } from '../types';
+import type {
+  DomainScores,
+  DomainSuggestionGroup,
+  Organization,
+  SupportCategory,
+  SupportSuggestion,
+} from '../types';
 import {
   countSchoolReviewsForSupport,
   summarizeReviews,
@@ -26,15 +32,31 @@ function compareSuggestions(a: SupportSuggestion, b: SupportSuggestion): number 
 }
 
 /**
+ * 候補を出す領域。
+ *
+ * 通常はスコアが付いた領域だけ（＝この児童に必要な領域）。
+ * openDomain は「支援の現状」のB項目から領域を名指しで開きにきたときだけ渡る。
+ * その領域はスコアが0でも候補を出す。地域にその支援があること自体は児童のスコアと
+ * 無関係な事実で、「B項目に件数が出ているのにタブ④では選べない」という食い違いを
+ * 作らないため。スコア順の末尾に置くので、必要な領域が先頭から並ぶ順序は変わらない。
+ */
+function targetDomains(scores: DomainScores, openDomain?: SupportCategory): SupportCategory[] {
+  const scored = scoredDomains(scores);
+  if (!openDomain || scored.includes(openDomain)) return scored;
+  return [...scored, openDomain];
+}
+
+/**
  * 支援候補を領域ごとにまとめる。
  * 領域の順序は児童のスコアが高い順、領域内の順序は getSuggestions() の並びを引き継ぐ。
  * 複数領域に効く支援は、合致した領域それぞれの一覧に出る。
  */
 export function groupSuggestionsByDomain(
   suggestions: SupportSuggestion[],
-  scores: DomainScores
+  scores: DomainScores,
+  openDomain?: SupportCategory
 ): DomainSuggestionGroup[] {
-  return scoredDomains(scores)
+  return targetDomains(scores, openDomain)
     .map(domain => ({
       domain,
       score: scores[domain],
@@ -49,6 +71,7 @@ export function groupSuggestionsByDomain(
  * 児童のスコアが1以上の領域を「支援が必要な領域」とし、その領域の支援を
  * 「対応可能」（enabled）として登録している団体だけを候補にする。
  * 支援が複数領域に対応している場合、ひとつでも合致すれば候補になる。
+ * openDomain を渡したときだけ、その領域はスコア0でも候補に含める（targetDomains 参照）。
  *
  * 利用実績はレビューから引く。別系統の実績データを持つと「利用実績なし」なのに
  * 星が付く状態が起きるため、issue #22 で一本化した。
@@ -56,9 +79,10 @@ export function groupSuggestionsByDomain(
 export function getSuggestions(
   scores: DomainScores,
   orgs: Organization[],
-  schoolName: string
+  schoolName: string,
+  openDomain?: SupportCategory
 ): SupportSuggestion[] {
-  const neededDomains = new Set(scoredDomains(scores));
+  const neededDomains = new Set(targetDomains(scores, openDomain));
 
   return orgs
     .flatMap(org => {

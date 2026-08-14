@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ClipboardList, SlidersHorizontal } from 'lucide-react';
 import { getSuggestions, groupSuggestionsByDomain } from '../data/mockData';
 import { useOrganizationStore } from '../hooks/useOrganizationStore';
+import { countSupportsPerDomain } from '../data/organizations';
 import { currentSchool } from '../data/schools';
 import {
   DIRECTIONS,
@@ -84,16 +85,25 @@ export default function MeetingPage() {
   const selectedStudent =
     results.find(student => student.id === selectedStudentId) ?? results[0];
 
-  // 支援候補は児童の8領域スコアと、団体が公開している支援から導出する
+  /*
+    支援候補は児童の8領域スコアと、団体が公開している支援から導出する。
+    selectedDomain を渡すのは、「支援の現状」のB項目から領域を名指しで開いたとき、
+    その領域のスコアが0でも候補を出すため（mockData.ts の targetDomains 参照）。
+    タブ④のタイルから選んだ場合はスコアが付いた領域しか押せないので、渡しても何も変わらない。
+  */
   const domainGroups = useMemo(() => {
     if (!selectedStudent) return [];
-    const suggestions = getSuggestions(selectedStudent.scores, published, currentSchool);
-    return groupSuggestionsByDomain(suggestions, selectedStudent.scores);
-  }, [selectedStudent, published]);
+    const open = selectedDomain ?? undefined;
+    const suggestions = getSuggestions(selectedStudent.scores, published, currentSchool, open);
+    return groupSuggestionsByDomain(suggestions, selectedStudent.scores, open);
+  }, [selectedStudent, published, selectedDomain]);
 
   // 未選択のとき、および児童を切り替えて選択中の領域が無くなったときは最重要領域に戻す
   const activeGroup =
     domainGroups.find(group => group.domain === selectedDomain) ?? domainGroups[0];
+
+  // 8領域すべてのタイルを出すための件数。児童のスコアとは無関係に数える
+  const supportCounts = useMemo(() => countSupportsPerDomain(published), [published]);
 
   // 詳細モーダルの対象。支援と、それを提供する団体の両方が要る
   const detail = useMemo(() => {
@@ -306,6 +316,7 @@ export default function MeetingPage() {
             student={selectedStudent}
             groups={domainGroups}
             activeGroup={activeGroup}
+            supportCounts={supportCounts}
             registeredSupportIds={registeredSupportIds}
             onSelectDomain={setSelectedDomain}
             onOpenDetail={setDetailSupportId}

@@ -19,6 +19,7 @@ export default function MeetingSupportTab({
   student,
   groups,
   activeGroup,
+  supportCounts,
   registeredSupportIds,
   onSelectDomain,
   onOpenDetail,
@@ -27,6 +28,8 @@ export default function MeetingSupportTab({
   student: Student;
   groups: DomainSuggestionGroup[];
   activeGroup?: DomainSuggestionGroup;
+  /** 領域ごとの支援の登録件数。8領域すべてのタイルを出すのに使う */
+  supportCounts: Record<SupportCategory, number>;
   /** すでにアクションとして登録済みの支援。ボタンの出し分けに使う */
   registeredSupportIds: string[];
   onSelectDomain: (domain: SupportCategory) => void;
@@ -51,12 +54,13 @@ export default function MeetingSupportTab({
               <div className="flex items-baseline gap-3 flex-wrap mb-2">
                 <h3 className="text-sm font-bold text-yoss-dark">どの領域が重いか</h3>
                 <p className="text-xs text-gray-500">
-                  領域を選ぶと、対応できる支援が下に出ます（先生の追加入力はありません）
+                  色が付いているのがこの児童に必要な領域です。
+                  どの領域も選べます（先生の追加入力はありません）
                 </p>
               </div>
               <DomainSelector
                 scores={student.scores}
-                groups={groups}
+                supportCounts={supportCounts}
                 activeDomain={activeGroup?.domain}
                 onSelect={onSelectDomain}
               />
@@ -83,6 +87,18 @@ export default function MeetingSupportTab({
                   )}
                   <span className="text-xs text-gray-500">／ レビュー評価が高い順</span>
                 </div>
+
+                {/*
+                  「支援の現状」のB項目から名指しで開いた領域は、スコア0でもここに出す。
+                  地域にその支援があること自体は児童のスコアと関係ない事実なので、
+                  出したうえで「今学期の優先度は高くない」と添える。
+                */}
+                {activeGroup.score === 0 && (
+                  <p className="text-xs text-gray-500 border border-dashed border-gray-200 rounded-lg px-3 py-2">
+                    この児童の「{activeGroup.domain}」は今学期0点で、優先して手を打つ領域ではありません。
+                    地域にこの領域の支援が登録されているため、参考として出しています。
+                  </p>
+                )}
 
                 <div className="grid grid-cols-2 gap-3">
                   {activeGroup.suggestions.map((suggestion, index) => (

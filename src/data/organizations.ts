@@ -240,17 +240,33 @@ export function deriveCategories(supports: OrganizationSupport[]): SupportCatego
 }
 
 /**
- * 指定した領域のいずれかに対応できる、現在公開中の支援の件数。
+ * 8領域それぞれに、現在公開中の支援が何件あるか。児童の必要度は問わない。
+ *
+ * タブ④の領域タイルを8つとも出すために使う。児童のスコアが0の領域でも
+ * 「地域にはこの支援がある」ことは事実なので、件数はスコアと切り離して数える。
+ * 支援は複数領域を持てるので、同じ支援が複数の領域で数えられる。
+ */
+export function countSupportsPerDomain(orgs: Organization[]): Record<SupportCategory, number> {
+  const enabled = orgs.flatMap(org => org.supports).filter(support => support.enabled);
+
+  return SUPPORT_CATEGORIES.reduce((counts, category) => {
+    counts[category] = enabled.filter(support => support.categories.includes(category)).length;
+    return counts;
+  }, {} as Record<SupportCategory, number>);
+}
+
+/**
+ * 指定したIDの支援のうち、現在公開中のものの件数。
  *
  * 「支援の現状」B項目の隣に出す件数はここから取る。特定の児童の必要度は問わない
- * （システム全体にその領域の支援が登録されているかどうかを見せるものなので）。
- * 支援は複数領域を持てるので、件数は「対象の領域をひとつでも含む支援」の数であり、
- * 領域ごとの件数の単純合計ではない（二重に数えない）。
+ * （システム全体にその項目に対応する支援が登録されているかどうかを見せるものなので）。
+ * 8領域ではなく支援ID単位で数える。8領域は項目より粒度が粗く、同じ領域を共有する
+ * 別の項目のために登録された支援まで拾ってしまうため（DirectionItem.supportIds 参照）。
  */
-export function countSupportsForDomains(orgs: Organization[], domains: SupportCategory[]): number {
+export function countSupportsByIds(orgs: Organization[], supportIds: string[]): number {
   return orgs
     .flatMap(org => org.supports)
-    .filter(support => support.enabled && support.categories.some(category => domains.includes(category)))
+    .filter(support => support.enabled && supportIds.includes(support.id))
     .length;
 }
 
