@@ -28,14 +28,18 @@ export const DIRECTIONS: { key: SupportDirection; label: string }[] = [
  * 方向性ごとの色。選ばれている A / B / C を見分けるためのもので、
  * 「押すと何かが起きる」ことを示すオレンジとは役割が違う。
  *
- * 淡い地に濃い文字を載せる。塗りつぶして白文字にするとアンバーが 3.19:1 までしか
- * 出ず、本文の 4.5:1 に届かないため（この組み合わせは A 6.16 / B 4.84 / C 4.79）。
+ * 色そのものは「支援の現状」の三列（ScreeningDirectionPanel の PANEL_STYLES）に
+ * 合わせている。同じ A/B/C が画面の場所によって別の色になっていると、
+ * 色から方向性を読めなくなるため。
+ *
+ * 淡い地に濃い文字を載せる。塗りつぶして白文字にすると B のアンバーが 3.19:1 までしか
+ * 出ず、本文の 4.5:1 に届かない（この組み合わせは A 5.91 / B 4.74 / C 4.79）。
  * 選ばれていないときは無彩色に落として、色が付いていること自体を選択の合図にする。
  */
 export const DIRECTION_STYLES: Record<SupportDirection, { on: string; off: string }> = {
-  A: { on: 'bg-blue-50 text-blue-700 border-blue-200', off: 'bg-white text-gray-300 border-gray-200' },
-  B: { on: 'bg-amber-50 text-amber-700 border-amber-300', off: 'bg-white text-gray-300 border-gray-200' },
-  C: { on: 'bg-green-50 text-green-700 border-green-300', off: 'bg-white text-gray-300 border-gray-200' },
+  A: { on: 'bg-red-50 text-red-700 border-red-200', off: 'bg-white text-gray-300 border-gray-200' },
+  B: { on: 'bg-yoss-yellow-light text-amber-700 border-yoss-yellow/40', off: 'bg-white text-gray-300 border-gray-200' },
+  C: { on: 'bg-green-50 text-green-700 border-green-200', off: 'bg-white text-gray-300 border-gray-200' },
 };
 
 /**
