@@ -6,6 +6,7 @@ import { countSupportsPerDomain } from '../data/organizations';
 import { currentSchool } from '../data/schools';
 import {
   DIRECTIONS,
+  DIRECTION_STYLES,
   MEETING_TABS,
   actionFromSuggestion,
   currentTerm,
@@ -299,8 +300,8 @@ export default function MeetingPage() {
       </div>
 
       {/* 絞り込み条件。会議中も、いま誰を対象にしているのかが見えたままになる */}
-      <div className="shrink-0 flex items-center gap-4 px-6 py-2.5 bg-yoss-yellow-light/50 border-b border-yoss-yellow/20">
-        <span className="shrink-0 flex items-center gap-1.5 text-xs font-bold text-yoss-yellow-dark">
+      <div className="shrink-0 flex items-center gap-4 px-6 py-2.5 bg-gray-50 border-b border-gray-100">
+        <span className="shrink-0 flex items-center gap-1.5 text-xs font-bold text-gray-500">
           <SlidersHorizontal size={13} />
           絞り込み
         </span>
@@ -309,7 +310,7 @@ export default function MeetingPage() {
         </span>
         <button
           onClick={() => setHasSearched(false)}
-          className="ml-auto shrink-0 rounded-lg border border-yoss-yellow/40 bg-white px-3 py-1.5 text-xs font-bold text-yoss-yellow-dark hover:border-yoss-yellow transition-colors"
+          className="ml-auto shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-yoss-link hover:border-yoss-link transition-colors"
         >
           条件を変更
         </button>
@@ -329,7 +330,7 @@ export default function MeetingPage() {
             onClick={() => selectTab(meetingTab.key)}
             className={`shrink-0 whitespace-nowrap px-3.5 py-2.5 text-[13px] border-b-[3px] transition-colors ${
               meetingTab.key === tab
-                ? 'border-yoss-yellow font-bold text-yoss-yellow-dark'
+                ? 'border-gray-700 font-bold text-yoss-dark'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -391,8 +392,8 @@ export default function MeetingPage() {
             return (
               <span
                 key={direction.key}
-                className={`text-xs font-bold px-2 py-1 rounded ${
-                  isChecked ? 'bg-yoss-yellow text-white' : 'bg-gray-100 text-gray-400'
+                className={`text-xs font-bold px-2 py-1 rounded border ${
+                  isChecked ? DIRECTION_STYLES[direction.key].on : DIRECTION_STYLES[direction.key].off
                 }`}
               >
                 {direction.key}

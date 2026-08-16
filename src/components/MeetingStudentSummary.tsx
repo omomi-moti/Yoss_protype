@@ -1,12 +1,12 @@
-import { DIRECTIONS } from '../data/meeting';
+import { DIRECTIONS, DIRECTION_STYLES } from '../data/meeting';
 import { parseCurrentSupport, scoreLevel, totalScore } from '../data/students';
 import type { Student } from '../types';
 
 // スコアの水準ごとの文字色（児童一覧のバッジ配色と揃える）
 const SCORE_STYLES = {
-  high: 'text-red-500',
-  middle: 'text-yoss-yellow-dark',
-  low: 'text-gray-500',
+  high: 'text-yoss-dark',
+  middle: 'text-gray-600',
+  low: 'text-gray-400',
 } as const;
 
 /**
@@ -25,7 +25,7 @@ export default function MeetingStudentSummary({ student }: { student: Student })
   const notes = student.notes.split('・');
 
   return (
-    <div className="shrink-0 flex items-center gap-6 rounded-xl border border-yoss-yellow/30 bg-yoss-yellow-light/40 px-5 py-3">
+    <div className="shrink-0 flex items-center gap-6 rounded-xl border border-gray-200 bg-white px-5 py-3">
       <div className="min-w-0">
         <h2 className="text-lg font-bold text-yoss-dark leading-tight">
           {student.grade} {student.number}番
@@ -54,10 +54,10 @@ export default function MeetingStudentSummary({ student }: { student: Student })
               <span
                 key={direction.key}
                 title={direction.label}
-                className={`w-6 h-6 flex items-center justify-center rounded text-xs font-bold ${
+                className={`w-6 h-6 flex items-center justify-center rounded border text-xs font-bold ${
                   directions.includes(direction.key)
-                    ? 'bg-yoss-yellow text-white'
-                    : 'bg-white text-gray-300 border border-gray-200'
+                    ? DIRECTION_STYLES[direction.key].on
+                    : DIRECTION_STYLES[direction.key].off
                 }`}
               >
                 {direction.key}

@@ -85,7 +85,7 @@ export default function MeetingSupportTab({
                 <div className="flex items-baseline gap-2 flex-wrap">
                   <h3 className="text-sm font-bold text-yoss-dark">
                     {activeGroup.domain} {activeGroup.score}pt に対応できる支援
-                    <span className="ml-1 text-yoss-yellow-dark">
+                    <span className="ml-1 text-gray-600">
                       {activeGroup.suggestions.length}件
                     </span>
                   </h3>
@@ -126,7 +126,7 @@ export default function MeetingSupportTab({
                     </span>
                     <button
                       onClick={onClearDirectionFilter}
-                      className="text-xs font-bold text-yoss-yellow-dark hover:underline"
+                      className="text-xs font-bold text-yoss-link hover:underline"
                     >
                       解除して{activeGroup.domain}の全{unfilteredCount}件を見る
                     </button>

@@ -32,7 +32,7 @@ export default function MeetingStudentBar({
         onClick={() => move(-1)}
         disabled={index <= 0}
         aria-label="前の児童"
-        className="shrink-0 w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-yoss-yellow-dark hover:border-yoss-yellow disabled:text-gray-300 disabled:hover:border-gray-200 transition-colors"
+        className="shrink-0 w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-yoss-link hover:border-yoss-link disabled:text-gray-300 disabled:hover:border-gray-200 transition-colors"
       >
         <ChevronLeft size={16} />
       </button>
@@ -48,12 +48,12 @@ export default function MeetingStudentBar({
               onClick={() => onSelect(student.id)}
               className={`shrink-0 whitespace-nowrap rounded-lg border px-3 py-1.5 text-[13px] transition-colors ${
                 isActive
-                  ? 'bg-yoss-yellow-light border-yoss-yellow font-bold text-yoss-dark'
+                  ? 'bg-white border-gray-500 font-bold text-yoss-dark'
                   : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
               }`}
             >
               {student.grade} {student.number}番
-              <span className={`ml-1.5 ${isActive ? 'text-yoss-yellow-dark' : 'text-gray-400'}`}>
+              <span className={`ml-1.5 ${isActive ? 'text-gray-600' : 'text-gray-400'}`}>
                 {totalScore(student.scores)}pt
               </span>
             </button>
@@ -65,14 +65,14 @@ export default function MeetingStudentBar({
         onClick={() => move(1)}
         disabled={index >= students.length - 1}
         aria-label="次の児童"
-        className="shrink-0 w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-yoss-yellow-dark hover:border-yoss-yellow disabled:text-gray-300 disabled:hover:border-gray-200 transition-colors"
+        className="shrink-0 w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-yoss-link hover:border-yoss-link disabled:text-gray-300 disabled:hover:border-gray-200 transition-colors"
       >
         <ChevronRight size={16} />
       </button>
 
       <button
         onClick={onOpenList}
-        className="shrink-0 flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-bold text-yoss-yellow-dark hover:border-yoss-yellow transition-colors"
+        className="shrink-0 flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-200 px-3 py-1.5 text-[13px] font-bold text-yoss-link hover:border-yoss-link transition-colors"
       >
         <List size={14} />
         一覧 {students.length}名

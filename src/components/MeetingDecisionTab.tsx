@@ -1,4 +1,4 @@
-import { DIRECTIONS } from '../data/meeting';
+import { DIRECTIONS, DIRECTION_STYLES } from '../data/meeting';
 import MeetingStudentSummary from './MeetingStudentSummary';
 import type { MeetingDecision, Student } from '../types';
 
@@ -32,7 +32,7 @@ export default function MeetingDecisionTab({
           </p>
           <button
             onClick={onOpenRecorder}
-            className="text-xs text-yoss-yellow-dark hover:underline"
+            className="text-xs text-yoss-link hover:underline"
           >
             記録をつける
           </button>
@@ -50,7 +50,7 @@ export default function MeetingDecisionTab({
                     key={direction.key}
                     className={`text-[13px] px-3 py-1.5 rounded-lg border ${
                       isChecked
-                        ? 'bg-yoss-yellow-light border-yoss-yellow font-bold text-yoss-dark'
+                        ? `${DIRECTION_STYLES[direction.key].on} font-bold`
                         : 'bg-white border-gray-200 text-gray-300'
                     }`}
                   >

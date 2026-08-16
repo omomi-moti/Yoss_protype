@@ -50,7 +50,7 @@ export default function Layout() {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-sm transition-colors ${
                   isActive
-                    ? 'bg-yoss-yellow-light text-yoss-yellow-dark font-semibold'
+                    ? 'bg-gray-100 text-yoss-dark font-semibold'
                     : 'text-gray-600 hover:bg-gray-50'
                 }`
               }
