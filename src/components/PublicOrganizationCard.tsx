@@ -37,11 +37,7 @@ export default function PublicOrganizationCard({
   const supportCount = org.supports.filter(x => x.enabled).length;
 
   const body = (
-    <div
-      className={`h-full bg-white rounded-3xl border border-gray-200 overflow-hidden transition-all ${
-        linkable ? 'hover:border-yoss-yellow hover:shadow-2xl hover:-translate-y-1' : ''
-      }`}
-    >
+    <div className="h-full bg-white rounded-3xl border border-gray-200 overflow-hidden transition-all cursor-pointer hover:border-yoss-yellow hover:shadow-2xl hover:-translate-y-1">
       <div className="grid sm:grid-cols-5 h-full">
         <OrganizationCover
           org={org}

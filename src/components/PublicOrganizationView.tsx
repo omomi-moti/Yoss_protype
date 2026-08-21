@@ -49,7 +49,7 @@ export default function PublicOrganizationView({
       <OrganizationCover org={org} className="h-72 sm:h-96" iconSize={340}>
         <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
         <div className="absolute inset-x-0 bottom-0">
-          <div className="max-w-5xl mx-auto px-5 pb-20">
+          <div className="max-w-5xl mx-auto px-5 pb-12">
             <div className="flex items-center gap-2 text-[11px] text-white/90 mb-3">
               <span className="px-2.5 py-1 rounded-full bg-white/95 text-yoss-dark font-bold">
                 {org.type}
@@ -69,7 +69,7 @@ export default function PublicOrganizationView({
       </OrganizationCover>
 
       {/* 本文は表紙に少し重ねる。境目をまたぐことで1枚のページとして続いて見える */}
-      <div className="relative z-10 max-w-5xl mx-auto px-5 -mt-8 pb-12 grid lg:grid-cols-3 gap-6 items-start">
+      <div className="max-w-5xl mx-auto px-5 py-10 grid lg:grid-cols-3 gap-6 items-start">
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-7 sm:p-8">
             <p className="text-base text-gray-700 leading-relaxed">{org.description}</p>
