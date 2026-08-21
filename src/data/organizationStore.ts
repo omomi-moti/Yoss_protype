@@ -96,6 +96,8 @@ function migrate(org: Organization): Organization {
     supports,
     // 支援の領域が変わるので、団体の対応領域も導出し直す
     categories: deriveCategories(supports),
+    // 一般の人からの支援はあとから足した項目。持っていない保存済みデータがある
+    contributions: org.contributions ?? [],
     reviews: org.reviews.map(review => migrateReview(review, supports)),
   };
 }
