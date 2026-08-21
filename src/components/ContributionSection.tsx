@@ -101,7 +101,14 @@ export default function ContributionSection({
         type="number"
         min={0}
         value={value ?? ''}
-        onChange={e => update(id, { [key]: e.target.value === '' ? undefined : Number(e.target.value) })}
+        onChange={e => {
+          // 先頭の 0 を落とす。0 の入った欄に打ち足すと「07」になるが、React は
+          // 数値入力で「新しい値と DOM の値が数値として等しい」場合に DOM を
+          // 書き換えないため（07 == 7）、こちらで直接直さないと 0 が消えない
+          const raw = e.target.value.replace(/^0+(?=\d)/, '');
+          if (raw !== e.target.value) e.target.value = raw;
+          update(id, { [key]: raw === '' ? undefined : Number(raw) });
+        }}
         className={inputClass}
       />
     </div>

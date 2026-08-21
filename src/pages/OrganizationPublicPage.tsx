@@ -104,11 +104,14 @@ function SupportModal({
   const isVolunteer = contribution.type === 'ボランティア';
   const unit = isMoney ? '円' : isVolunteer ? '名' : contribution.unit || '';
 
-  const [amount, setAmount] = useState<number>(isMoney ? AMOUNT_PRESETS[1] : 1);
+  const [amount, setAmount] = useState<string>(String(isMoney ? AMOUNT_PRESETS[1] : 1));
+
+  const parsed = Number(amount);
+  const canSubmit = amount !== '' && Number.isFinite(parsed) && parsed > 0;
 
   const submit = () => {
-    if (amount <= 0) return;
-    addSupport(contribution.id, amount);
+    if (!canSubmit) return;
+    addSupport(contribution.id, parsed);
     onDone(contribution.name);
   };
 
@@ -134,9 +137,9 @@ function SupportModal({
                   {AMOUNT_PRESETS.map(preset => (
                     <button
                       key={preset}
-                      onClick={() => setAmount(preset)}
+                      onClick={() => setAmount(String(preset))}
                       className={`px-3 py-1.5 rounded-lg text-xs border transition-colors ${
-                        amount === preset
+                        parsed === preset
                           ? 'bg-yoss-yellow-light border-yoss-yellow text-yoss-yellow-dark font-bold'
                           : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'
                       }`}
@@ -150,7 +153,7 @@ function SupportModal({
                 type="number"
                 min={1}
                 value={amount}
-                onChange={e => setAmount(Number(e.target.value))}
+                onChange={e => setAmount(e.target.value.replace(/^0+(?=\d)/, ''))}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:border-yoss-yellow focus:ring-1 focus:ring-yoss-yellow/20"
               />
             </>
@@ -170,7 +173,7 @@ function SupportModal({
           </button>
           <button
             onClick={submit}
-            disabled={amount <= 0}
+            disabled={!canSubmit}
             className="flex-1 py-2.5 rounded-xl bg-yoss-yellow text-white font-bold text-sm hover:bg-yoss-yellow-dark disabled:bg-gray-200 disabled:text-gray-400 transition-colors"
           >
             {TYPE_META[contribution.type].cta}
