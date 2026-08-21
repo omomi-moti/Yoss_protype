@@ -1,4 +1,4 @@
-import type { Organization, OrganizationSupport, OrganizationType, ProblemTag, RelevantReview, ReviewSummary, SchoolReview, SupportCategory } from '../types';
+import type { ContributionType, Organization, OrganizationContribution, OrganizationSupport, OrganizationType, ProblemTag, RelevantReview, ReviewSummary, SchoolReview, SupportCategory } from '../types';
 
 // 画面Cのフィルタ用（YOSS 8領域の表示順）
 export const SUPPORT_CATEGORIES: SupportCategory[] = [
@@ -22,8 +22,14 @@ export const ORGANIZATION_TYPES: OrganizationType[] = [
   'その他',
 ];
 
-// categories は supports から導出するため、データ定義では持たない
-type OrganizationSeed = Omit<Organization, 'categories'>;
+// 画面Aのタブ用（一般の人からの支援の表示順）
+export const CONTRIBUTION_TYPES: ContributionType[] = ['寄付金', '物品', 'ボランティア'];
+
+// categories は supports から導出するため、データ定義では持たない。
+// contributions（一般の人からの支援）は募集している団体だけが持つので任意にする
+type OrganizationSeed = Omit<Organization, 'categories' | 'contributions'> & {
+  contributions?: OrganizationContribution[];
+};
 
 /*
  * 支援の categories を複数持たせているもの（子ども食堂＝地域情報＋経済 など）は、
@@ -54,6 +60,12 @@ const seeds: OrganizationSeed[] = [
         date: '2026-06',
         problemTags: ['経済的困窮', '孤立・居場所なし'],
       },
+    ],
+    contributions: [
+      { id: 'c-1', type: '寄付金', name: '子ども食堂 運営基金', description: '食材費と会場費にあてます。1食あたり約300円の負担を地域で分け合う形です。', goalAmount: 500000, currentAmount: 320000, enabled: true },
+      { id: 'c-2', type: '物品', name: 'お米', description: '未開封のものをお願いします。精米日が3か月以内だと助かります。', neededCount: 60, unit: 'kg', enabled: true },
+      { id: 'c-3', type: '物品', name: 'レトルト食品・缶詰', description: '賞味期限が2か月以上あるものをお願いします。', neededCount: 200, unit: '個', enabled: true },
+      { id: 'c-4', type: 'ボランティア', name: '調理・配膳スタッフ', description: '火曜・金曜の16:00〜19:30。調理経験は問いません。初回は職員が付きます。', neededCount: 8, enabled: true },
     ],
     isMine: true,
   },
@@ -167,6 +179,10 @@ const seeds: OrganizationSeed[] = [
       { id: 'r8', name: '日本語指導教室', categories: ['学習'], description: '外国にルーツのある児童生徒向け', targetGrades: '全学年', cost: '無料', capacity: '10名', frequency: '週2回（火・木 16:00〜18:00／公民館）', howToUse: 'メールで申込。保護者面談への通訳同行も相談可', enabled: true },
     ],
     reviews: [],
+    contributions: [
+      { id: 'c-5', type: 'ボランティア', name: '学習サポーター', description: '火曜・木曜の16:00〜18:00。小学生の宿題を横で見ていただきます。', neededCount: 5, enabled: true },
+      { id: 'c-6', type: 'ボランティア', name: '通訳ボランティア（ポルトガル語・ベトナム語）', description: '保護者面談への同行が中心です。頻度は月1〜2回程度。', neededCount: 3, enabled: true },
+    ],
     isMine: false,
   },
   {
@@ -345,4 +361,5 @@ export function sortReviewsByRelevance(
 export const organizations: Organization[] = seeds.map(org => ({
   ...org,
   categories: deriveCategories(org.supports),
+  contributions: org.contributions ?? [],
 }));

@@ -191,6 +191,38 @@ export interface OrganizationSupport {
   enabled: boolean;
 }
 
+/**
+ * 一般の人が団体に提供できるものの種別。
+ * 学校が児童のために使う支援（OrganizationSupport）とは受け手が違う。
+ */
+export type ContributionType = '寄付金' | '物品' | 'ボランティア';
+
+/**
+ * 一般の人からの支援を募る1件。団体の公開ページに出す。
+ *
+ * OrganizationSupport とは別の配列で持つ。同じ配列に混ぜると getSuggestions() が
+ * enabled な支援として拾ってしまい、校内チーム会議の支援候補に「寄付金 目標50万円」が
+ * 並ぶ（mockData.ts 参照）。
+ *
+ * 8領域（categories）は持たない。児童の領域スコアから抽出する対象ではないため。
+ * レビュー（SchoolReview）も付かない。あれは学校が利用した支援に対するもの。
+ */
+export interface OrganizationContribution {
+  id: string;
+  type: ContributionType;
+  /** 寄付金・ボランティアは募集の名前、物品は品目名 */
+  name: string;
+  description: string;
+  /** 寄付金のみ。目標額・現在額（円）。決済は実装せず表示だけ */
+  goalAmount?: number;
+  currentAmount?: number;
+  /** 物品の必要数、ボランティアの募集人数 */
+  neededCount?: number;
+  /** 物品の数え方（個・箱・kg など）。ボランティアは「名」で固定 */
+  unit?: string;
+  enabled: boolean;
+}
+
 // 学校からのレビューの集計（星の平均と件数）
 export interface ReviewSummary {
   /** 1〜5の平均。レビューが1件もなければ null */
@@ -227,6 +259,8 @@ export interface Organization {
   contact: OrganizationContact;
   categories: SupportCategory[];
   supports: OrganizationSupport[];
+  /** 一般の人からの支援。支援一覧とは別の画面に出すため supports とは分ける */
+  contributions: OrganizationContribution[];
   reviews: SchoolReview[];
   isMine: boolean;
 }

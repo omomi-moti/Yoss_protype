@@ -1,11 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, ChevronDown, ChevronUp, Eye, Info, Plus, Trash2, AlertCircle, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import ContributionSection from '../components/ContributionSection';
 import PreviewModal from '../components/PreviewModal';
 import { ORGANIZATION_TYPES, SUPPORT_CATEGORIES, deriveCategories } from '../data/organizations';
 import { getPublishedMine, publishDraft, resetStore, saveDraft as persistDraft } from '../data/organizationStore';
 import { useOrganizationStore } from '../hooks/useOrganizationStore';
-import type { Organization, OrganizationSupport, SupportCategory } from '../types';
+import type { Organization, OrganizationContribution, OrganizationSupport, SupportCategory } from '../types';
+
+/**
+ * 登録する対象のタブ。
+ *
+ * 学校に出す支援（8領域）と、一般の人に出す募集（3種別）は受け手が違い、
+ * 出ていく画面も別になる。同じ画面に縦に並べると、どちらが学校に見えるのかが
+ * 読み取れなくなるため、タブで切り替える。
+ */
+type RegisterTab = 'supports' | 'contributions';
 
 function formatSavedAt(iso: string | null): string | null {
   if (!iso) return null;
@@ -23,6 +33,7 @@ export default function RegisterPage() {
   // 一度も保存されていない新規追加分（キャンセルすると行ごと消える）
   const [unsavedIds, setUnsavedIds] = useState<Set<string>>(new Set());
   const [justSavedId, setJustSavedId] = useState<string | null>(null);
+  const [tab, setTab] = useState<RegisterTab>('supports');
   const [showPreview, setShowPreview] = useState(false);
   const [justPublished, setJustPublished] = useState(false);
   const nextSupportId = useRef(0);
@@ -62,6 +73,16 @@ export default function RegisterPage() {
   const savedSupports = profile.supports.filter(s => s.enabled && !unsavedIds.has(s.id));
   const activeCategories = [...new Set(savedSupports.flatMap(s => s.categories))];
   const enabledTotal = savedSupports.length;
+  const enabledContributions = profile.contributions.filter(c => c.enabled).length;
+
+  const tabs: { key: RegisterTab; label: string; count: number }[] = [
+    { key: 'supports', label: '対応可能な支援（8領域）', count: enabledTotal },
+    { key: 'contributions', label: '一般の方からの支援', count: enabledContributions },
+  ];
+
+  const updateContributions = (contributions: OrganizationContribution[]) => {
+    setProfile(prev => ({ ...prev, contributions }));
+  };
 
   const toggle = (id: string) => {
     setProfile(prev => ({
@@ -324,6 +345,26 @@ export default function RegisterPage() {
         </div>
       </div>
 
+      {/* 登録するものの切り替え。画面Dのタブバーと同じ見た目に合わせる */}
+      <div className="flex items-end gap-1 border-b border-gray-200 mb-4">
+        {tabs.map(item => (
+          <button
+            key={item.key}
+            onClick={() => setTab(item.key)}
+            className={`shrink-0 whitespace-nowrap px-3.5 py-2.5 text-[13px] border-b-[3px] transition-colors ${
+              item.key === tab
+                ? 'border-gray-700 font-bold text-yoss-dark'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {item.label}
+            <span className="ml-1.5 text-[10px] font-normal text-gray-400">{item.count}</span>
+          </button>
+        ))}
+      </div>
+
+      {tab === 'supports' && (
+        <>
       {/* 学校に表示される対応領域（登録内容から導出） */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
         <h2 className="font-bold text-sm text-yoss-dark mb-1">学校に表示される対応領域</h2>
@@ -576,6 +617,21 @@ export default function RegisterPage() {
           );
         })}
       </div>
+        </>
+      )}
+
+      {tab === 'contributions' && (
+        <>
+          <div className="flex items-start gap-3 bg-white border border-gray-200 rounded-lg p-4 mb-4">
+            <Info size={16} className="text-gray-400 mt-0.5 shrink-0" />
+            <div className="text-xs text-gray-500 leading-relaxed">
+              ここで登録する募集は<strong className="text-yoss-dark">一般の方に向けた団体の公開ページ</strong>に出るもので、
+              学校の校内チーム会議には表示されません。校内チーム会議に出す支援は「対応可能な支援（8領域）」タブで登録してください。
+            </div>
+          </div>
+          <ContributionSection contributions={profile.contributions} onChange={updateContributions} />
+        </>
+      )}
 
       {/* Publish */}
       <div className="sticky bottom-0 bg-gradient-to-t from-[#FAFAFA] via-[#FAFAFA] to-transparent pt-4 pb-2 mt-6">
@@ -588,6 +644,7 @@ export default function RegisterPage() {
         </button>
         <p className="text-center text-[10px] text-gray-400 mt-2">
           {enabledTotal} 件の支援が、{profile.area.city} の学校の校内チーム会議画面に反映されます
+          {enabledContributions > 0 && `／${enabledContributions} 件の募集を一般の方に公開します`}
         </p>
       </div>
 
