@@ -46,10 +46,10 @@ export default function PublicOrganizationView({
   return (
     <>
       {/* 表紙。団体名を写真の上に置く見せ方に寄せる */}
-      <OrganizationCover org={org} className="h-64 sm:h-80" iconSize={340}>
+      <OrganizationCover org={org} className="h-72 sm:h-96" iconSize={340}>
         <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
         <div className="absolute inset-x-0 bottom-0">
-          <div className="max-w-5xl mx-auto px-5 pb-8">
+          <div className="max-w-5xl mx-auto px-5 pb-20">
             <div className="flex items-center gap-2 text-[11px] text-white/90 mb-3">
               <span className="px-2.5 py-1 rounded-full bg-white/95 text-yoss-dark font-bold">
                 {org.type}
@@ -177,8 +177,8 @@ export default function PublicOrganizationView({
           </section>
         </div>
 
-        {/* 支援状況。スクロールしても達成状況が見えたままになるよう追従させる */}
-        <aside className="lg:sticky lg:top-20">
+        {/* 支援状況。追従はさせない——本文が長く、右カラムが空いたまま付いてくると落ち着かない */}
+        <aside>
           <div className="bg-white rounded-3xl border border-gray-200 p-7 shadow-lg">
             <div className="flex items-center gap-1.5 text-[11px] text-gray-500">
               <Coins size={13} />
