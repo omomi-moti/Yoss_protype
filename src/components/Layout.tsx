@@ -1,17 +1,35 @@
 import { NavLink, Outlet } from 'react-router-dom';
-import { Building2, BarChart3, Users, Home } from 'lucide-react';
+import { Building2, BarChart3, Users, Home, HeartHandshake } from 'lucide-react';
 import { useOrganizationStore } from '../hooks/useOrganizationStore';
 
-const navItems = [
-  { to: '/', label: 'トップ', icon: Home },
-  { to: '/register', label: '支援登録', icon: Building2, badge: '支援団体' },
-  { to: '/dashboard', label: 'サポート一覧', icon: BarChart3, badge: '共通' },
-  { to: '/meeting', label: '校内チーム会議', icon: Users, badge: '学校' },
-];
+/**
+ * 画面Eは本来サイドバーの外側にある一般向けのページだが、モックとして流れを追えるように
+ * ここにも導線を置く。開いた先にサイドバーは出ない（Layout の外にルートがある）ので、
+ * 戻るときは画面E上部の「管理画面に戻る」を使う。
+ */
+function navItemsFor() {
+  return [
+    { to: '/', label: 'トップ', icon: Home },
+    { to: '/register', label: '支援登録', icon: Building2, badge: '支援団体' },
+    { to: '/dashboard', label: 'サポート一覧', icon: BarChart3, badge: '共通' },
+    { to: '/meeting', label: '校内チーム会議', icon: Users, badge: '学校' },
+    { to: '/orgs', label: '公開ページ', icon: HeartHandshake, badge: '一般' },
+  ];
+}
+
+/** バッジの色は「誰向けの画面か」を表す。役割ごとに固定して、画面をまたいでも同じ色にする */
+const BADGE_STYLES: Record<string, string> = {
+  支援団体: 'bg-blue-50 text-blue-500',
+  共通: 'bg-purple-50 text-purple-500',
+  学校: 'bg-green-50 text-green-600',
+  一般: 'bg-rose-50 text-rose-500',
+};
 
 export default function Layout() {
   // ログイン中の団体という想定
   const { draft: myOrganization } = useOrganizationStore();
+
+  const navItems = navItemsFor();
 
   return (
     // 横長ヘッダーは置かない。ブランドとログイン情報はサイドバーの余白に収め、
@@ -58,9 +76,7 @@ export default function Layout() {
               <item.icon size={18} />
               <span>{item.label}</span>
               {item.badge && (
-                <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded ${
-                  item.badge === '支援団体' ? 'bg-blue-50 text-blue-500' : item.badge === '共通' ? 'bg-purple-50 text-purple-500' : 'bg-green-50 text-green-600'
-                }`}>
+                <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded ${BADGE_STYLES[item.badge]}`}>
                   {item.badge}
                 </span>
               )}

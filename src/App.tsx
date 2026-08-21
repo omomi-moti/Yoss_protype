@@ -4,6 +4,8 @@ import TopPage from './pages/TopPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import MeetingPage from './pages/MeetingPage';
+import OrganizationPublicPage from './pages/OrganizationPublicPage';
+import PublicDirectoryPage from './pages/PublicDirectoryPage';
 
 export default function App() {
   return (
@@ -15,6 +17,12 @@ export default function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/meeting" element={<MeetingPage />} />
         </Route>
+        {/*
+          画面E（公開ページ）は Layout の外に置く。管理用サイドバーを出さないため。
+          プロトタイプに認証は無いので、できるのは「管理画面の枠を外す」ところまで。
+        */}
+        <Route path="/orgs" element={<PublicDirectoryPage />} />
+        <Route path="/orgs/:id" element={<OrganizationPublicPage />} />
       </Routes>
     </BrowserRouter>
   );

@@ -218,8 +218,17 @@ export interface OrganizationContribution {
   currentAmount?: number;
   /** 物品の必要数、ボランティアの募集人数 */
   neededCount?: number;
+  /**
+   * 物品で集まった数、ボランティアで応募済みの人数。
+   * 寄付金の currentAmount と同じ役割で、達成状況の分子になる。
+   * 団体が画面Aで入れるのは現時点の実績で、画面Eからの支援はこれに積み増す
+   * （supportStore.ts 参照）。
+   */
+  receivedCount?: number;
   /** 物品の数え方（個・箱・kg など）。ボランティアは「名」で固定 */
   unit?: string;
+  /** この募集を支援した人数。画面Eの「支援者数」に出す */
+  supporterCount?: number;
   enabled: boolean;
 }
 
@@ -256,6 +265,12 @@ export interface Organization {
   type: OrganizationType;
   area: OrganizationArea;
   description: string; // 200文字以内
+  /**
+   * 取り組みの説明（長文）。画面Eの本文になる。
+   * description（紹介文）は画面C・画面Dで一覧に並べる短い要約なので別に持つ。
+   * 一覧では長文を出せず、公開ページでは短い要約だけでは何をする団体か伝わらない。
+   */
+  story: string;
   contact: OrganizationContact;
   categories: SupportCategory[];
   supports: OrganizationSupport[];

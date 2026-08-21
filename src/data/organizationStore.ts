@@ -1,4 +1,10 @@
-import type { Organization, OrganizationSupport, SchoolReview, SupportCategory } from '../types';
+import type {
+  Organization,
+  OrganizationContribution,
+  OrganizationSupport,
+  SchoolReview,
+  SupportCategory,
+} from '../types';
 import { deriveCategories, organizations } from './organizations';
 
 /**
@@ -79,6 +85,28 @@ function migrateCategories(support: OrganizationSupport): SupportCategory[] {
 }
 
 /**
+ * 支援者数を、欠けていればシードから補う。
+ *
+ * supporterCount は画面Aで編集できない項目なので、保存済みデータに無いのは
+ * 「利用者が消した」のではなく「その項目より前に保存された」ということ。
+ * 0 として扱うと、下書きを持っている環境だけ支援者数が消えて見える。
+ * 集まった数（receivedCount）は画面Aで編集できるので、ここでは補わない。
+ */
+function migrateContributions(
+  stored: OrganizationContribution[],
+  orgId: string
+): OrganizationContribution[] {
+  const seeded = organizations.find(o => o.id === orgId)?.contributions ?? [];
+
+  return stored.map(contribution => {
+    if (contribution.supporterCount !== undefined) return contribution;
+
+    const seed = seeded.find(c => c.id === contribution.id);
+    return { ...contribution, supporterCount: seed?.supporterCount ?? 0 };
+  });
+}
+
+/**
  * 保存済みのデータに、あとから追加・変更した項目を合わせる。
  * localStorage には過去のバージョンの形のまま残っているため、欠けている項目を埋めないと
  * 入力欄が uncontrolled になったり、レビューが支援に紐づかなくなる。
@@ -97,7 +125,9 @@ function migrate(org: Organization): Organization {
     // 支援の領域が変わるので、団体の対応領域も導出し直す
     categories: deriveCategories(supports),
     // 一般の人からの支援はあとから足した項目。持っていない保存済みデータがある
-    contributions: org.contributions ?? [],
+    contributions: migrateContributions(org.contributions ?? [], org.id),
+    // 取り組みの説明（画面Eの本文）もあとから足した項目
+    story: org.story ?? '',
     reviews: org.reviews.map(review => migrateReview(review, supports)),
   };
 }

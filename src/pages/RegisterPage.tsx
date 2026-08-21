@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, ChevronDown, ChevronUp, Eye, Info, Plus, Trash2, AlertCircle, RotateCcw } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Check, ChevronDown, ChevronUp, ExternalLink, Eye, Info, Plus, Sparkles, Trash2, AlertCircle, RotateCcw } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import ContributionSection from '../components/ContributionSection';
 import PreviewModal from '../components/PreviewModal';
+import PublicPreviewModal from '../components/PublicPreviewModal';
 import { ORGANIZATION_TYPES, SUPPORT_CATEGORIES, deriveCategories } from '../data/organizations';
 import { getPublishedMine, publishDraft, resetStore, saveDraft as persistDraft } from '../data/organizationStore';
+import { resetSupport } from '../data/supportStore';
 import { useOrganizationStore } from '../hooks/useOrganizationStore';
 import type { Organization, OrganizationContribution, OrganizationSupport, SupportCategory } from '../types';
 
@@ -35,6 +37,7 @@ export default function RegisterPage() {
   const [justSavedId, setJustSavedId] = useState<string | null>(null);
   const [tab, setTab] = useState<RegisterTab>('supports');
   const [showPreview, setShowPreview] = useState(false);
+  const [showPublicPreview, setShowPublicPreview] = useState(false);
   const [justPublished, setJustPublished] = useState(false);
   const nextSupportId = useRef(0);
 
@@ -57,12 +60,14 @@ export default function RegisterPage() {
   const handlePublish = () => {
     publishDraft();
     setShowPreview(false);
+    setShowPublicPreview(false);
     setJustPublished(true);
     setTimeout(() => setJustPublished(false), 8000);
   };
 
   const handleReset = () => {
     resetStore();
+    resetSupport();
     setProfile(getPublishedMine());
     setDrafts({});
     setUnsavedIds(new Set());
@@ -239,7 +244,7 @@ export default function RegisterPage() {
           <button
             onClick={handleReset}
             className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-gray-600"
-            title="下書きと公開内容を初期データに戻します"
+            title="下書き・公開内容・公開ページで記録された支援を、すべて初期データに戻します"
           >
             <RotateCcw size={11} />
             初期状態に戻す
@@ -622,29 +627,84 @@ export default function RegisterPage() {
 
       {tab === 'contributions' && (
         <>
-          <div className="flex items-start gap-3 bg-white border border-gray-200 rounded-lg p-4 mb-4">
-            <Info size={16} className="text-gray-400 mt-0.5 shrink-0" />
-            <div className="text-xs text-gray-500 leading-relaxed">
-              ここで登録する募集は<strong className="text-yoss-dark">一般の方に向けた団体の公開ページ</strong>に出るもので、
-              学校の校内チーム会議には表示されません。校内チーム会議に出す支援は「対応可能な支援（8領域）」タブで登録してください。
+          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+            <div className="flex items-start gap-3">
+              <Sparkles size={16} className="text-yoss-yellow-dark mt-0.5 shrink-0" />
+              <div className="text-xs text-gray-500 leading-relaxed">
+                ここに入力した内容から、
+                <strong className="text-yoss-dark">一般の方向けの公開ページが自動で組み上がります。</strong>
+                ページを別に作る必要はありません。
+                <span className="block mt-1">
+                  この内容は学校の校内チーム会議には表示されません。校内チーム会議に出す支援は
+                  「対応可能な支援（8領域）」タブで登録してください。
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-3 pl-7 text-[10px] text-gray-400">
+              <span>基本情報</span>
+              <span className="text-gray-300">＋</span>
+              <span>取り組みの説明</span>
+              <span className="text-gray-300">＋</span>
+              <span>募集 {enabledContributions} 件</span>
+              <span className="text-yoss-yellow-dark">→</span>
+              <button
+                onClick={() => setShowPublicPreview(true)}
+                className="font-bold text-yoss-link hover:underline"
+              >
+                公開ページを組み立てて見る
+              </button>
             </div>
           </div>
+          {/* 画面Eの本文。紹介文（200文字）は一覧用の要約なので、長文はここに分けて持つ */}
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-4">
+            <div className="px-5 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="font-bold text-sm text-yoss-dark">取り組みの説明</h2>
+                <p className="text-[10px] text-gray-400 mt-0.5">
+                  公開ページの本文になります。何をしている団体で、なぜ支援が必要なのかを書いてください。
+                </p>
+              </div>
+              <Link
+                to={`/orgs/${profile.id}`}
+                target="_blank"
+                className="shrink-0 flex items-center gap-1 text-[10px] font-bold text-yoss-link hover:underline"
+              >
+                <ExternalLink size={11} />
+                公開ページを見る
+              </Link>
+            </div>
+            <div className="p-5">
+              <textarea
+                value={profile.story}
+                rows={8}
+                placeholder="例）市内3箇所で子ども食堂を開いています。平日の夕方、学校から直接来られる場所に……"
+                onChange={e => updateField('story', e.target.value)}
+                className="w-full px-3 py-2 text-xs border border-gray-200 rounded-md bg-white leading-relaxed focus:outline-none focus:border-yoss-yellow focus:ring-1 focus:ring-yoss-yellow/20"
+              />
+              <p className="text-[10px] text-gray-400 mt-1.5">
+                改行はそのまま公開ページに反映されます。空のままなら紹介文が代わりに表示されます。
+              </p>
+            </div>
+          </div>
+
           <ContributionSection contributions={profile.contributions} onChange={updateContributions} />
         </>
       )}
 
       {/* Publish */}
       <div className="sticky bottom-0 bg-gradient-to-t from-[#FAFAFA] via-[#FAFAFA] to-transparent pt-4 pb-2 mt-6">
+        {/* 確認する相手はタブによって変わる。押した先が学校向けか一般向けかを取り違えないため */}
         <button
-          onClick={() => setShowPreview(true)}
+          onClick={() => (tab === 'supports' ? setShowPreview(true) : setShowPublicPreview(true))}
           className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all bg-yoss-yellow text-white hover:bg-yoss-yellow-dark shadow-lg shadow-yoss-yellow/20"
         >
-          <Eye size={18} />
-          学校からの見え方を確認する
+          {tab === 'supports' ? <Eye size={18} /> : <Sparkles size={18} />}
+          {tab === 'supports' ? '学校からの見え方を確認する' : '一般の方からの見え方を確認する'}
         </button>
         <p className="text-center text-[10px] text-gray-400 mt-2">
-          {enabledTotal} 件の支援が、{profile.area.city} の学校の校内チーム会議画面に反映されます
-          {enabledContributions > 0 && `／${enabledContributions} 件の募集を一般の方に公開します`}
+          {tab === 'supports'
+            ? `${enabledTotal} 件の支援が、${profile.area.city} の学校の校内チーム会議画面に反映されます`
+            : `${enabledContributions} 件の募集が、一般の方向けの公開ページに反映されます`}
         </p>
       </div>
 
@@ -654,6 +714,15 @@ export default function RegisterPage() {
           hasChanges={hasUnpublished}
           onPublish={handlePublish}
           onClose={() => setShowPreview(false)}
+        />
+      )}
+
+      {showPublicPreview && (
+        <PublicPreviewModal
+          org={publishableProfile}
+          hasChanges={hasUnpublished}
+          onPublish={handlePublish}
+          onClose={() => setShowPublicPreview(false)}
         />
       )}
     </div>

@@ -10,8 +10,11 @@ export default function Modal({ onClose, labelledBy, size = 'lg', children }: {
   onClose: () => void;
   /** 見出し要素の id。読み上げ時にモーダルの名前として使われる */
   labelledBy: string;
-  /** sm は確認ダイアログ用。中身が短いので画面中央に置く */
-  size?: 'sm' | 'lg';
+  /**
+   * sm は確認ダイアログ用。中身が短いので画面中央に置く。
+   * full は画面Eのプレビュー用。本物と同じ幅で組まないと、見え方の確認にならない。
+   */
+  size?: 'sm' | 'lg' | 'full';
   children: ReactNode;
 }) {
   useEffect(() => {
@@ -37,7 +40,11 @@ export default function Modal({ onClose, labelledBy, size = 'lg', children }: {
         aria-modal="true"
         aria-labelledby={labelledBy}
         className={`w-full rounded-2xl shadow-xl ${
-          size === 'sm' ? 'max-w-md bg-white' : 'max-w-3xl bg-[#FAFAFA]'
+          size === 'sm'
+            ? 'max-w-md bg-white'
+            : size === 'full'
+              ? 'max-w-6xl bg-[#FAFAFA] overflow-hidden'
+              : 'max-w-3xl bg-[#FAFAFA]'
         }`}
       >
         {children}

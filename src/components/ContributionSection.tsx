@@ -60,7 +60,8 @@ function summaryOf(c: OrganizationContribution): string {
     return `${yen(c.currentAmount)} / ${yen(c.goalAmount)}${rate === null ? '' : `（${rate}%）`}`;
   }
   const unit = c.type === 'ボランティア' ? '名' : c.unit || '';
-  return c.neededCount ? `${c.neededCount.toLocaleString('ja-JP')}${unit}` : '必要数が未入力';
+  if (!c.neededCount) return '必要数が未入力';
+  return `${(c.receivedCount ?? 0).toLocaleString('ja-JP')} / ${c.neededCount.toLocaleString('ja-JP')}${unit}`;
 }
 
 export default function ContributionSection({
@@ -91,7 +92,7 @@ export default function ContributionSection({
   const numberField = (
     id: string,
     label: string,
-    key: 'goalAmount' | 'currentAmount' | 'neededCount',
+    key: 'goalAmount' | 'currentAmount' | 'neededCount' | 'receivedCount',
     value: number | undefined
   ) => (
     <div>
@@ -100,7 +101,14 @@ export default function ContributionSection({
         type="number"
         min={0}
         value={value ?? ''}
-        onChange={e => update(id, { [key]: e.target.value === '' ? undefined : Number(e.target.value) })}
+        onChange={e => {
+          // 先頭の 0 を落とす。0 の入った欄に打ち足すと「07」になるが、React は
+          // 数値入力で「新しい値と DOM の値が数値として等しい」場合に DOM を
+          // 書き換えないため（07 == 7）、こちらで直接直さないと 0 が消えない
+          const raw = e.target.value.replace(/^0+(?=\d)/, '');
+          if (raw !== e.target.value) e.target.value = raw;
+          update(id, { [key]: raw === '' ? undefined : Number(raw) });
+        }}
         className={inputClass}
       />
     </div>
@@ -204,6 +212,7 @@ export default function ContributionSection({
                           {type === '物品' && (
                             <>
                               {numberField(item.id, '必要数', 'neededCount', item.neededCount)}
+                              {numberField(item.id, '集まった数', 'receivedCount', item.receivedCount)}
                               <div>
                                 <label className="text-[10px] text-gray-400 font-bold">単位</label>
                                 <input
@@ -216,8 +225,12 @@ export default function ContributionSection({
                               </div>
                             </>
                           )}
-                          {type === 'ボランティア' &&
-                            numberField(item.id, '募集人数（名）', 'neededCount', item.neededCount)}
+                          {type === 'ボランティア' && (
+                            <>
+                              {numberField(item.id, '募集人数（名）', 'neededCount', item.neededCount)}
+                              {numberField(item.id, '応募済み（名）', 'receivedCount', item.receivedCount)}
+                            </>
+                          )}
                         </div>
 
                         <div className="flex justify-end mt-3">
