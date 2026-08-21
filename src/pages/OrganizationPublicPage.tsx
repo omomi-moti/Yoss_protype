@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Check, RotateCcw } from 'lucide-react';
+import { Check, RotateCcw } from 'lucide-react';
 import Modal from '../components/Modal';
+import PublicHeader from '../components/PublicHeader';
 import PublicOrganizationView from '../components/PublicOrganizationView';
 import { TYPE_META } from '../components/contributionTypeMeta';
 import { addSupport, resetSupport } from '../data/supportStore';
@@ -21,29 +22,6 @@ import type { Organization, OrganizationContribution } from '../types';
 /** 寄付金の金額候補。毎回キーボードを出させないための既定値 */
 const AMOUNT_PRESETS = [1000, 3000, 5000, 10000];
 
-function PublicHeader() {
-  return (
-    <header className="border-b border-gray-200 bg-white/80 backdrop-blur sticky top-0 z-40">
-      <div className="max-w-5xl mx-auto px-5 py-3 flex items-center gap-2">
-        <div className="w-7 h-7 bg-yoss-yellow rounded-full flex items-center justify-center">
-          <span className="text-white font-bold text-[11px]">Y</span>
-        </div>
-        <span className="font-bold tracking-wide text-yoss-dark">YOSS</span>
-        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-yoss-yellow-light text-yoss-yellow-dark">
-          PROTOTYPE
-        </span>
-        <Link
-          to="/register"
-          className="ml-auto flex items-center gap-1 text-[11px] text-gray-500 hover:text-yoss-link"
-        >
-          <ArrowLeft size={12} />
-          管理画面に戻る
-        </Link>
-      </div>
-    </header>
-  );
-}
-
 export default function OrganizationPublicPage() {
   const { id } = useParams();
   const { published } = useOrganizationStore();
@@ -56,11 +34,11 @@ export default function OrganizationPublicPage() {
   if (!org) {
     return (
       <div className="min-h-screen bg-[#FAFAFA]">
-        <PublicHeader />
+        <PublicHeader backTo={{ to: '/orgs', label: '支援団体一覧' }} />
         <div className="max-w-5xl mx-auto px-5 py-20 text-center">
           <p className="text-sm text-gray-500">この団体の公開ページは見つかりませんでした。</p>
-          <Link to="/dashboard" className="text-xs text-yoss-link mt-2 inline-block">
-            支援団体ディレクトリへ
+          <Link to="/orgs" className="text-xs text-yoss-link mt-2 inline-block">
+            支援団体一覧へ
           </Link>
         </div>
       </div>
@@ -69,7 +47,7 @@ export default function OrganizationPublicPage() {
 
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
-      <PublicHeader />
+      <PublicHeader backTo={{ to: '/orgs', label: '支援団体一覧' }} />
 
       <PublicOrganizationView org={org} tally={tally} onSupport={setTarget} />
 
