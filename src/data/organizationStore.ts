@@ -98,6 +98,8 @@ function migrate(org: Organization): Organization {
     categories: deriveCategories(supports),
     // 一般の人からの支援はあとから足した項目。持っていない保存済みデータがある
     contributions: org.contributions ?? [],
+    // 取り組みの説明（画面Eの本文）もあとから足した項目
+    story: org.story ?? '',
     reviews: org.reviews.map(review => migrateReview(review, supports)),
   };
 }

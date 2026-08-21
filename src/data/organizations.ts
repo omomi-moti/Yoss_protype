@@ -27,8 +27,10 @@ export const CONTRIBUTION_TYPES: ContributionType[] = ['寄付金', '物品', '�
 
 // categories は supports から導出するため、データ定義では持たない。
 // contributions（一般の人からの支援）は募集している団体だけが持つので任意にする
-type OrganizationSeed = Omit<Organization, 'categories' | 'contributions'> & {
+type OrganizationSeed = Omit<Organization, 'categories' | 'contributions' | 'story'> & {
   contributions?: OrganizationContribution[];
+  /** 取り組みの説明（長文）。公開ページを持つ団体だけが書く */
+  story?: string;
 };
 
 /*
@@ -61,11 +63,16 @@ const seeds: OrganizationSeed[] = [
         problemTags: ['経済的困窮', '孤立・居場所なし'],
       },
     ],
+    story:
+      '市内3箇所で子ども食堂を開いています。平日の夕方、学校から直接来られる場所に、温かい食事と「おかえり」と言ってくれる大人がいる。それだけのことですが、来てくれる子は週に40人を超えました。\n\n' +
+      '学校の先生から「この子が気になる」と連絡をもらって繋がる子が、全体の3割ほどいます。家庭の事情で夕食が用意されない日がある、家に一人でいる時間が長い、そういう子です。私たちは事情を聞き出しません。ただ席を用意して、名前を覚えて、また来てねと言うだけです。\n\n' +
+      '続けるために足りていないのが、食材と人手です。1食あたりの材料費はおよそ300円。週2回・3箇所を回すと、月におよそ10万円かかります。調理と配膳に入ってくれる人も、いまは固定の4人でやりくりしていて、誰かが体調を崩すと開けられません。\n\n' +
+      '寄付でも、お米ひと袋でも、月に一度の調理でも構いません。関わり方はどれでも同じ重さです。',
     contributions: [
-      { id: 'c-1', type: '寄付金', name: '子ども食堂 運営基金', description: '食材費と会場費にあてます。1食あたり約300円の負担を地域で分け合う形です。', goalAmount: 500000, currentAmount: 320000, enabled: true },
-      { id: 'c-2', type: '物品', name: 'お米', description: '未開封のものをお願いします。精米日が3か月以内だと助かります。', neededCount: 60, unit: 'kg', enabled: true },
-      { id: 'c-3', type: '物品', name: 'レトルト食品・缶詰', description: '賞味期限が2か月以上あるものをお願いします。', neededCount: 200, unit: '個', enabled: true },
-      { id: 'c-4', type: 'ボランティア', name: '調理・配膳スタッフ', description: '火曜・金曜の16:00〜19:30。調理経験は問いません。初回は職員が付きます。', neededCount: 8, enabled: true },
+      { id: 'c-1', type: '寄付金', name: '子ども食堂 運営基金', description: '食材費と会場費にあてます。1食あたり約300円の負担を地域で分け合う形です。', goalAmount: 500000, currentAmount: 320000, supporterCount: 84, enabled: true },
+      { id: 'c-2', type: '物品', name: 'お米', description: '未開封のものをお願いします。精米日が3か月以内だと助かります。', neededCount: 60, receivedCount: 38, unit: 'kg', supporterCount: 12, enabled: true },
+      { id: 'c-3', type: '物品', name: 'レトルト食品・缶詰', description: '賞味期限が2か月以上あるものをお願いします。', neededCount: 200, receivedCount: 64, unit: '個', supporterCount: 9, enabled: true },
+      { id: 'c-4', type: 'ボランティア', name: '調理・配膳スタッフ', description: '火曜・金曜の16:00〜19:30。調理経験は問いません。初回は職員が付きます。', neededCount: 8, receivedCount: 3, supporterCount: 3, enabled: true },
     ],
     isMine: true,
   },
@@ -179,9 +186,14 @@ const seeds: OrganizationSeed[] = [
       { id: 'r8', name: '日本語指導教室', categories: ['学習'], description: '外国にルーツのある児童生徒向け', targetGrades: '全学年', cost: '無料', capacity: '10名', frequency: '週2回（火・木 16:00〜18:00／公民館）', howToUse: 'メールで申込。保護者面談への通訳同行も相談可', enabled: true },
     ],
     reviews: [],
+    story:
+      '公民館の一室で、週2回の学習室を開いています。来るのは外国にルーツのある小中学生が中心で、いま登録しているのは17人です。\n\n' +
+      '日本語が話せないわけではありません。友だちとは普通に喋ります。ただ教科書の文章になると急に読めなくなる。「割合」「垂直」といった言葉が、意味ごと抜け落ちたまま学年が上がってしまう。そこを一つずつ埋め直す場所です。\n\n' +
+      '保護者面談に通訳として同行することも増えました。学校からの連絡が保護者に届いていない、というだけの理由で支援が止まっていることが、実際にあります。\n\n' +
+      '教える資格は要りません。宿題を横で見て、分からなさそうな顔をしたら一緒に読む。それだけで足ります。',
     contributions: [
-      { id: 'c-5', type: 'ボランティア', name: '学習サポーター', description: '火曜・木曜の16:00〜18:00。小学生の宿題を横で見ていただきます。', neededCount: 5, enabled: true },
-      { id: 'c-6', type: 'ボランティア', name: '通訳ボランティア（ポルトガル語・ベトナム語）', description: '保護者面談への同行が中心です。頻度は月1〜2回程度。', neededCount: 3, enabled: true },
+      { id: 'c-5', type: 'ボランティア', name: '学習サポーター', description: '火曜・木曜の16:00〜18:00。小学生の宿題を横で見ていただきます。', neededCount: 5, receivedCount: 2, supporterCount: 2, enabled: true },
+      { id: 'c-6', type: 'ボランティア', name: '通訳ボランティア（ポルトガル語・ベトナム語）', description: '保護者面談への同行が中心です。頻度は月1〜2回程度。', neededCount: 3, receivedCount: 0, supporterCount: 0, enabled: true },
     ],
     isMine: false,
   },
@@ -362,4 +374,5 @@ export const organizations: Organization[] = seeds.map(org => ({
   ...org,
   categories: deriveCategories(org.supports),
   contributions: org.contributions ?? [],
+  story: org.story ?? '',
 }));

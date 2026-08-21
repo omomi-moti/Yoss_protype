@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Check, ChevronDown, ChevronUp, Eye, Info, Plus, Trash2, AlertCircle, RotateCcw } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Check, ChevronDown, ChevronUp, ExternalLink, Eye, Info, Plus, Trash2, AlertCircle, RotateCcw } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import ContributionSection from '../components/ContributionSection';
 import PreviewModal from '../components/PreviewModal';
 import { ORGANIZATION_TYPES, SUPPORT_CATEGORIES, deriveCategories } from '../data/organizations';
@@ -629,6 +629,38 @@ export default function RegisterPage() {
               学校の校内チーム会議には表示されません。校内チーム会議に出す支援は「対応可能な支援（8領域）」タブで登録してください。
             </div>
           </div>
+          {/* 画面Eの本文。紹介文（200文字）は一覧用の要約なので、長文はここに分けて持つ */}
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-4">
+            <div className="px-5 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="font-bold text-sm text-yoss-dark">取り組みの説明</h2>
+                <p className="text-[10px] text-gray-400 mt-0.5">
+                  公開ページの本文になります。何をしている団体で、なぜ支援が必要なのかを書いてください。
+                </p>
+              </div>
+              <Link
+                to={`/orgs/${profile.id}`}
+                target="_blank"
+                className="shrink-0 flex items-center gap-1 text-[10px] font-bold text-yoss-link hover:underline"
+              >
+                <ExternalLink size={11} />
+                公開ページを見る
+              </Link>
+            </div>
+            <div className="p-5">
+              <textarea
+                value={profile.story}
+                rows={8}
+                placeholder="例）市内3箇所で子ども食堂を開いています。平日の夕方、学校から直接来られる場所に……"
+                onChange={e => updateField('story', e.target.value)}
+                className="w-full px-3 py-2 text-xs border border-gray-200 rounded-md bg-white leading-relaxed focus:outline-none focus:border-yoss-yellow focus:ring-1 focus:ring-yoss-yellow/20"
+              />
+              <p className="text-[10px] text-gray-400 mt-1.5">
+                改行はそのまま公開ページに反映されます。空のままなら紹介文が代わりに表示されます。
+              </p>
+            </div>
+          </div>
+
           <ContributionSection contributions={profile.contributions} onChange={updateContributions} />
         </>
       )}
