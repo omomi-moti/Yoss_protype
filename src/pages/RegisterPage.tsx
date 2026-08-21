@@ -6,6 +6,7 @@ import PreviewModal from '../components/PreviewModal';
 import PublicPreviewModal from '../components/PublicPreviewModal';
 import { ORGANIZATION_TYPES, SUPPORT_CATEGORIES, deriveCategories } from '../data/organizations';
 import { getPublishedMine, publishDraft, resetStore, saveDraft as persistDraft } from '../data/organizationStore';
+import { resetSupport } from '../data/supportStore';
 import { useOrganizationStore } from '../hooks/useOrganizationStore';
 import type { Organization, OrganizationContribution, OrganizationSupport, SupportCategory } from '../types';
 
@@ -66,6 +67,7 @@ export default function RegisterPage() {
 
   const handleReset = () => {
     resetStore();
+    resetSupport();
     setProfile(getPublishedMine());
     setDrafts({});
     setUnsavedIds(new Set());
@@ -242,7 +244,7 @@ export default function RegisterPage() {
           <button
             onClick={handleReset}
             className="flex items-center gap-1 text-[10px] text-gray-400 hover:text-gray-600"
-            title="下書きと公開内容を初期データに戻します"
+            title="下書き・公開内容・公開ページで記録された支援を、すべて初期データに戻します"
           >
             <RotateCcw size={11} />
             初期状態に戻す
