@@ -291,6 +291,30 @@ export function itemGroupsOfOwner(
   })).filter(group => group.items.length > 0);
 }
 
+/**
+ * 全項目一覧（タブ②の「全項目一覧」）用。入力面ごとに、その面が受け持つ領域のカードを返す。
+ *
+ * 入力面ごとの表示（itemGroupsOfOwner）と違い、カードの中身はその領域の全項目にする。
+ * 実物の一覧が、学級の「学校適応」カードに データ の①③④ も並べているのに合わせたもの
+ * ——一覧は「誰が入力したか」ではなく「その領域に何点付いたか」を読む面なので、
+ * 入力面をまたいで領域ごとにまとめないと合計と行が合わない。
+ *
+ * データは自前の領域を持たない（①〜④はすべて学校適応で、学級のカードに入る）ため、
+ * セクションとしては出さない。②欠席日数は点が付かない項目なので一覧では省く。
+ */
+export function overviewSections(): {
+  owner: ScreeningOwner;
+  groups: { domain: SupportCategory; items: ScreeningItem[] }[];
+}[] {
+  return SCREENING_OWNERS.filter(owner => owner !== 'データ').map(owner => ({
+    owner,
+    groups: itemGroupsOfOwner(owner).map(({ domain }) => ({
+      domain,
+      items: itemsOfDomain(domain).filter(item => item.scored !== false),
+    })),
+  }));
+}
+
 /** 領域の素点の満点（点が付く項目数 × 2） */
 function rawMaxOf(domain: SupportCategory): number {
   return itemsOfDomain(domain).filter(item => item.scored !== false).length * 2;
