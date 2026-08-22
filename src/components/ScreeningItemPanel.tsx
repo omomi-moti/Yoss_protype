@@ -1,16 +1,8 @@
-import { DOMAIN_GROUP_LABELS, changeOf, itemGroupsOfOwner, previousAnswers } from '../data/screening';
+import { DOMAIN_GROUP_LABELS, itemGroupsOfOwner, previousAnswers } from '../data/screening';
 import { absenceDays } from '../data/students';
-import type { ScreeningChange, ScreeningOwner, Student } from '../types';
-
-/** 変化ごとのチップの色。実物の凡例（悪化＝橙／良化＝青／変化なし＝灰） */
-const CHANGE_STYLES: Record<ScreeningChange, string> = {
-  悪化: 'bg-orange-500 text-white border-orange-500',
-  良化: 'bg-blue-600 text-white border-blue-600',
-  変化なし: 'bg-gray-500 text-white border-gray-500',
-  未選択: 'bg-white text-gray-300 border-gray-200',
-};
-
-const LEGEND: ScreeningChange[] = ['悪化', '良化', '変化なし', '未選択'];
+import ScreeningChangeLegend from './ScreeningChangeLegend';
+import ScreeningScoreBoxes from './ScreeningScoreBoxes';
+import type { ScreeningOwner, Student } from '../types';
 
 /**
  * スクリーニングの項目一覧（タブ②のサブタブの中身）。
@@ -38,13 +30,8 @@ export default function ScreeningItemPanel({
         <p className="text-xs text-gray-500">
           {owner}が入力する項目です。付いた点数の合計が領域スコアになります ／ 色は前学期との比較
         </p>
-        <div className="ml-auto flex gap-2 shrink-0">
-          {LEGEND.map(change => (
-            <span key={change} className="flex items-center gap-1 text-[11px] text-gray-500">
-              <span className={`w-3.5 h-3.5 rounded-sm border ${CHANGE_STYLES[change]}`} />
-              {change}
-            </span>
-          ))}
+        <div className="ml-auto">
+          <ScreeningChangeLegend />
         </div>
       </div>
 
@@ -58,7 +45,6 @@ export default function ScreeningItemPanel({
           <div className="border border-gray-200 rounded-b-lg rounded-tr-lg bg-gray-50/40 px-4 py-2">
             {items.map(item => {
               const value = current[item.id];
-              const change = changeOf(value, previous[item.id]);
 
               // 点数ではなく学年ごとの日数を入れる項目（②欠席日数）
               if (item.scored === false) {
@@ -102,20 +88,7 @@ export default function ScreeningItemPanel({
                     {item.starred && <span className="text-yoss-yellow-dark">★</span>}
                   </span>
 
-                  <span className="shrink-0 flex gap-1">
-                    {([2, 1] as const).map(point => (
-                      <span
-                        key={point}
-                        className={`w-6 h-5 flex items-center justify-center rounded border text-[11px] font-bold ${
-                          value === point
-                            ? CHANGE_STYLES[change]
-                            : 'bg-white text-gray-300 border-gray-200'
-                        }`}
-                      >
-                        {point}
-                      </span>
-                    ))}
-                  </span>
+                  <ScreeningScoreBoxes value={value} previous={previous[item.id]} />
 
                   <span className="text-[11px] text-gray-400 leading-relaxed min-w-0">
                     {item.criteria}

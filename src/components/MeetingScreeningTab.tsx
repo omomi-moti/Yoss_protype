@@ -1,19 +1,41 @@
 import { useState } from 'react';
+import { LayoutGrid } from 'lucide-react';
 import { currentTerm, currentYear } from '../data/meeting';
 import { previousMeetingMemo } from '../data/records';
 import { SCREENING_OWNERS } from '../data/screening';
 import MeetingStudentSummary from './MeetingStudentSummary';
 import ScreeningDirectionPanel from './ScreeningDirectionPanel';
 import ScreeningItemPanel from './ScreeningItemPanel';
+import ScreeningOverviewPanel from './ScreeningOverviewPanel';
 import type { DirectionItem, Organization, ScreeningOwner, Student } from '../types';
 
 /**
  * タブ②のサブタブ。実物のスクリーニング画面の並びに合わせる。
  * 自由記述はタブ①が持っているのでここには置かない（同じものを2箇所に出さない）。
+ *
+ * 「全項目一覧」だけは入力面ではなく表示の切り替え。実物の一覧画面にあたるもので、
+ * 入力面ごとに分かれた37項目を1画面にまとめて見渡すためにある。
  */
-type ScreeningView = '支援の現状' | ScreeningOwner | '会議記録';
+const OVERVIEW = '全項目一覧';
 
-const VIEWS: ScreeningView[] = ['支援の現状', ...SCREENING_OWNERS, '会議記録'];
+type ScreeningView = '支援の現状' | ScreeningOwner | typeof OVERVIEW | '会議記録';
+
+/**
+ * 入力面のタブ。並びは実物どおり。
+ * 「全項目一覧」はデータの次に挟むので、そこで前後に分ける。
+ */
+const OWNERS_BEFORE_OVERVIEW: ScreeningOwner[] = ['データ'];
+const OWNERS_AFTER_OVERVIEW = SCREENING_OWNERS.filter(
+  owner => !OWNERS_BEFORE_OVERVIEW.includes(owner)
+);
+
+const TAB_CLASS = 'rounded-lg px-3.5 py-1.5 text-[13px] border transition-colors';
+
+function tabStyle(isActive: boolean): string {
+  return isActive
+    ? 'bg-gray-700 border-gray-700 text-white font-bold'
+    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300';
+}
 
 /**
  * タブ②「スクリーニング／会議記録」。
@@ -44,20 +66,55 @@ export default function MeetingScreeningTab({
       <div className="flex flex-col gap-3 mb-4">
         <MeetingStudentSummary student={student} />
 
-        <div className="flex gap-1 flex-wrap">
-          {VIEWS.map(item => (
+        <div className="flex gap-1 flex-wrap items-center">
+          <button
+            onClick={() => setView('支援の現状')}
+            className={`${TAB_CLASS} ${tabStyle(view === '支援の現状')}`}
+          >
+            支援の現状
+          </button>
+
+          {OWNERS_BEFORE_OVERVIEW.map(item => (
             <button
               key={item}
               onClick={() => setView(item)}
-              className={`rounded-lg px-3.5 py-1.5 text-[13px] border transition-colors ${
-                item === view
-                  ? 'bg-gray-700 border-gray-700 text-white font-bold'
-                  : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
-              }`}
+              className={`${TAB_CLASS} ${tabStyle(item === view)}`}
             >
               {item}
             </button>
           ))}
+
+          {/* 前後を区切る。これだけは入力面ではなく表示の切り替えなので、並びから浮かせる */}
+          <span className="w-px h-5 bg-gray-200 mx-1" />
+
+          <button
+            onClick={() => setView(OVERVIEW)}
+            className={`${TAB_CLASS} flex items-center gap-1.5 ${tabStyle(view === OVERVIEW)}`}
+            title="37項目を入力面ごとに並べて1画面で見渡します"
+          >
+            <LayoutGrid size={13} />
+            {OVERVIEW}
+          </button>
+
+          <span className="w-px h-5 bg-gray-200 mx-1" />
+
+          {OWNERS_AFTER_OVERVIEW.map(item => (
+            <button
+              key={item}
+              onClick={() => setView(item)}
+              className={`${TAB_CLASS} ${tabStyle(item === view)}`}
+            >
+              {item}
+            </button>
+          ))}
+
+          <button
+            onClick={() => setView('会議記録')}
+            className={`${TAB_CLASS} ${tabStyle(view === '会議記録')}`}
+          >
+            会議記録
+          </button>
+
           {/* 地域の支援団体はスクリーニングの入力権限を持たない（実物と同じ） */}
           <span className="rounded-lg px-3.5 py-1.5 text-[13px] border border-dashed border-gray-200 text-gray-400">
             地域資源 ・権限なし
@@ -110,7 +167,9 @@ export default function MeetingScreeningTab({
           </div>
         )}
 
-        {view !== '支援の現状' && view !== '会議記録' && (
+        {view === OVERVIEW && <ScreeningOverviewPanel student={student} />}
+
+        {view !== '支援の現状' && view !== '会議記録' && view !== OVERVIEW && (
           <ScreeningItemPanel student={student} owner={view} />
         )}
       </div>
