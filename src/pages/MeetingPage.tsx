@@ -435,6 +435,7 @@ export default function MeetingPage() {
       <MeetingDrawer
         side="right"
         isOpen={isDecisionOpen}
+        resizable
         title="この会議で決めたこと"
         subtitle={`${selectedStudent.grade} ${selectedStudent.number}番`}
         onClose={() => setIsDecisionOpen(false)}
