@@ -130,8 +130,10 @@ npm run dev
 ```
 
 実物と同じく「37項目の合計が領域スコア」なので、スコアを手で置きません。
-領域ごとの満点は項目数で変わる（学校適応は9項目=18点、経済は3項目=6点）ため、
-表示のときだけ10点満点に正規化します。
+領域ごとの満点は点が付く項目数で変わる（学校適応は9項目=18点、経済は3項目=6点）ため、
+**導出の時点で10点満点に正規化します**（`scoresFromAnswers`）。
+`Student.scores` に入っているのは最初から正規化後の値で、領域の並び順も支援候補の抽出も
+この値で行います。素点をそのまま持つ場所はありません。
 
 問題タグは37項目からのベストエフォートな要約で、複数のタグが同じ項目を根拠にすることが
 あるため完全な逆算はできません（[screening.ts](src/data/screening.ts) の `tagsFromAnswers`）。
@@ -174,7 +176,7 @@ npm run dev
 - React 19 / TypeScript / Vite
 - react-router-dom（ルーティング）
 - Tailwind CSS v4 — 色とフォントは [src/index.css](src/index.css) の `@theme` に定義
-- lucide-react（アイコン）、recharts（グラフ）
+- lucide-react（アイコン）
 - oxlint
 
 実物の YOSS は紺系ですが、本プロトタイプは黄色系（`yoss-yellow`）で統一しています。
