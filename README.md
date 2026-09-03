@@ -1,32 +1,54 @@
-# React + TypeScript + Vite
+# YOSS 地域資源機能の再設計プロトタイプ
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+YOSS の支援の方向性 B「地域資源の活用」は、項目にカテゴリ名しかなく、実際にどの団体へ繋ぐのかが
+システムにありません。支援団体を YOSS の中に入れて、この穴を埋める提案の動くプロトタイプです。
 
-Currently, two official plugins are available:
+## 何をするものか
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+支援団体が、対応可能な支援を登録します。それが8領域でマッチングされて、校内チーム会議の画面に
+支援候補として自動で並びます。
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```
+支援団体が登録 ──▶ 8領域でマッチング ──▶ 会議画面に候補が並ぶ
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+8領域（学校適応 / 学習 / 家庭状況 / 発達 / 健康 / 経済 / 福祉 / 地域情報）のスコアは、実物の YOSS に
+既にあるスクリーニング37項目から出ます。**先生が新しく入力するものはありません。**
+
+## セットアップ
+
+```bash
+npm install
+```
+
+```bash
+npm run dev
+```
+
+
+## 画面
+
+| 画面 | ルート | 誰向け |
+| --- | --- | --- |
+| トップ | `/` | 提案の要約 |
+| 画面A | `/register` | 支援団体が支援を登録する |
+| 画面C | `/dashboard` | 支援団体ディレクトリ |
+| 画面D | `/meeting` | 学校の校内チーム会議。支援候補が出るのはここ |
+| 画面E/F | `/orgs/:id`・`/orgs` | 一般向けの公開ページ |
+
+`/register` で支援を1つ増やしてから `/meeting` を見ると、B項目の件数が増えます。
+
+## 構成
+
+React 19 / TypeScript / Vite / Tailwind CSS v4 / react-router-dom。
+バックエンドはなく、モックデータと localStorage だけで動きます。認証・API・決済はありません。
+児童データはすべて架空です。
+
+```bash
+npm run build          # tsc -b && vite build
+```
+
+```bash
+npm run lint           # oxlint
+```
+
