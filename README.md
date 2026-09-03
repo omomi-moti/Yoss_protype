@@ -1,32 +1,218 @@
-# React + TypeScript + Vite
+# YOSS 地域資源機能の再設計プロトタイプ
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+「マップ」から「支援団体連携」へ。
+YOSS（子どもの支援情報を学校が扱うシステム）の**支援の方向性 B「地域資源の活用」**が
+実質的に機能していない問題を、支援団体をシステムの内側に取り込むことで解こうとする提案の
+動くプロトタイプです。
 
-Currently, two official plugins are available:
+バックエンドはありません。React + TypeScript + Vite の SPA で、データはモックと
+localStorage だけで動きます。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 何が問題なのか
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+実物の YOSS では、校内チーム会議で子どもごとに支援の方向性 A / B / C を記録します。
 
-## Expanding the Oxlint configuration
+| 方向性 | 内容 | 繋ぎ先 |
+| --- | --- | --- |
+| A | 教職員関与 | 校内で決まっている |
+| B | **地域資源の活用** | **システムのどこにも無い** |
+| C | 専門機関の活用 | 公的機関で決まっている |
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+A と C は繋ぎ先が校内・公的機関に決まっているので、「担任のアプローチ」「SC を活用した
+アプローチ」というカテゴリ名だけで用が足ります。
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+B は違います。「③ 居場所、こども食堂の活用」にチェックを入れられても、**具体的にどの団体に
+繋ぐのかがシステムに無い**。あるのはカテゴリ名だけです。結果、B は記録としては残るのに、
+次の行動に繋がりません。
+
+原因は UI ではなく、**地域の支援団体がシステムの外側にいる**ことです。
+マップに施設を並べても、そこに「今この子に何ができるか」は書かれていません。
+
+## 何を提案するのか
+
+支援団体を「外部の参照先」ではなく「一緒にやるプレイヤー」として YOSS に取り込みます。
+
+```
+支援団体  ──登録──▶  YOSS  ──自動表示──▶  学校
+   ▲                                        │
+   └──────────── レビュー ◀────────────────┘
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+- **支援団体**が、対応可能な支援を年1回・5分程度のチェック入力で登録する（画面A）
+- 登録された支援が、**校内チーム会議の画面に支援候補として自動で並ぶ**（画面D）
+- 学校が使った支援に**レビュー**を書き、それが次の学校の判断材料になる（画面C・画面D）
+
+### この提案の芯
+
+**先生の入力欄を一切増やさない。** 学校側は既に37項目のスクリーニングを入力しています。
+そのスコアだけを使って支援候補を出すので、新しい入力は発生しません。増える入力は
+支援団体側の年1回だけです。
+
+その結果、画面Dの B 項目には**カテゴリ名ではなく実際の登録件数**が出ます。
+団体が登録すれば件数が増え、登録が無い項目は「登録された支援がありません」と正直に出ます。
+
+---
+
+## 動かす
+
+```bash
+npm install
+```
+
+```bash
+npm run dev
+```
+
+ポートは決め打ちにしないでください。5173 が埋まっていると Vite が別のポートに回ります。
+実際の URL はサーバーのログで確認します。
+
+### デモを見る順番
+
+1. **`/`（トップ）** — 提案の要約とデータの流れ
+2. **`/register`（画面A）** — 支援団体として支援を登録する。チェックを1つ増やしてみる
+3. **`/meeting`（画面D）** — 校内チーム会議。児童を選び、タブ②の「支援の現状」B項目に
+   件数が出ていること、そこからタブ④に飛べることを見る
+4. **`/dashboard`（画面C）** — 地域の支援団体ディレクトリとレビュー
+5. **`/orgs`（画面F）→ `/orgs/:id`（画面E）** — 一般向けの公開ページ（登録内容から自動生成）
+
+> **デモの前に**：画面Aの「初期状態に戻す」を押してください。
+> localStorage に前回の編集が残っていると、シードを更新しても反映されません
+> （利用者の編集を勝手に上書きしないため、これは意図した挙動です）。
+
+---
+
+## 画面
+
+| 呼び方 | ルート | ファイル | 誰向け |
+| --- | --- | --- | --- |
+| トップ | `/` | [TopPage.tsx](src/pages/TopPage.tsx) | 提案の説明 |
+| 画面A | `/register` | [RegisterPage.tsx](src/pages/RegisterPage.tsx) | 支援団体（対応可能な支援を登録する） |
+| 画面C | `/dashboard` | [DashboardPage.tsx](src/pages/DashboardPage.tsx) | 共通（支援団体ディレクトリ） |
+| 画面D | `/meeting` | [MeetingPage.tsx](src/pages/MeetingPage.tsx) | 学校（校内チーム会議で支援候補を見る） |
+| 画面E | `/orgs/:id` | [OrganizationPublicPage.tsx](src/pages/OrganizationPublicPage.tsx) | 一般（団体の公開ページ・寄付／物品／ボランティア） |
+| 画面F | `/orgs` | [PublicDirectoryPage.tsx](src/pages/PublicDirectoryPage.tsx) | 一般（公開ページの一覧） |
+
+画面E・Fは管理用サイドバー（`Layout`）の外に置いています。プロトタイプに認証は無いので、
+できるのは「管理画面の枠を外す」ところまでです。
+
+### 画面D（校内チーム会議）のタブ
+
+実物の校内チーム会議の構成に合わせています。
+
+| タブ | 内容 |
+| --- | --- |
+| ① 状況（気になる情報） | 担任・養護・事務などが入力した自由記述 |
+| ② スクリーニング／会議記録 | 37項目のスコアと「支援の現状」A/B/C。**B項目に登録済み支援の件数が出る** |
+| ③ 対応記録・アクション記録 | 日常の対応記録（参照専用） |
+| ④ 領域と支援候補 | 8領域ごとの支援候補。**この提案の中心** |
+| ⑤ 今回の対応記録 | この会議で決めたこと（実物には無い5番目のタブ） |
+
+②のB項目から④へ、その項目に対応する支援だけを開いた状態で飛べます。
+
+---
+
+## 仕組み
+
+### YOSS 8領域が共通言語
+
+学校適応 / 学習 / 家庭状況 / 発達 / 健康 / 経済 / 福祉 / 地域情報。
+児童のスコア・支援の対応領域・レビューを、この8領域で繋ぎます。
+
+### スコアの向き
+
+```
+スクリーニング37項目の回答（Student.answers）  ← 真実源
+        │
+        ├──▶ 8領域スコア（DomainScores）      ── 支援候補の抽出に使う
+        └──▶ 問題タグ（ProblemTag）           ── 表示・レビューの関連度に使う
+```
+
+実物と同じく「37項目の合計が領域スコア」なので、スコアを手で置きません。
+領域ごとの満点は項目数で変わる（学校適応は9項目=18点、経済は3項目=6点）ため、
+表示のときだけ10点満点に正規化します。
+
+問題タグは37項目からのベストエフォートな要約で、複数のタグが同じ項目を根拠にすることが
+あるため完全な逆算はできません（[screening.ts](src/data/screening.ts) の `tagsFromAnswers`）。
+
+### 支援候補の出し方
+
+[mockData.ts](src/data/mockData.ts) の `getSuggestions()`。
+
+1. 児童のスコアが1以上の領域を「支援が必要な領域」とする
+2. その領域の支援を「対応可能」として登録している団体だけを候補にする
+3. 並び順は、①合致した領域のスコア合計の降順 → ②その支援へのレビュー評価が高い順
+
+複数領域に効く支援（子ども食堂など）は合計が大きくなるため上位に来ます。
+「この子の困りごとを一度にカバーできる」ものを優先する、という順序付けです。
+
+抽出は8領域スコアだけで行い、問題タグを直接は見ません。
+
+### データの置き場所
+
+バックエンドは無く、モックデータと localStorage だけで動きます。
+
+| ファイル | 役割 |
+| --- | --- |
+| [types/index.ts](src/types/index.ts) | 型はすべてここ |
+| [data/screening.ts](src/data/screening.ts) | スクリーニング37項目と、回答→8領域スコア／問題タグの導出 |
+| [data/students.ts](src/data/students.ts) | 児童のデモデータ（`answers` が真実源） |
+| [data/organizations.ts](src/data/organizations.ts) | 支援団体のシードと導出関数 |
+| [data/meeting.ts](src/data/meeting.ts) | 会議の定数（年度・学期・方向性A/B/C・「支援の現状」の項目・タブ） |
+| [data/mockData.ts](src/data/mockData.ts) | 画面Dの支援候補を組み立てる |
+| [data/records.ts](src/data/records.ts) | 担当の自由記述・対応記録のデモデータ |
+| [data/organizationStore.ts](src/data/organizationStore.ts) | 団体データの永続化（localStorage） |
+| [data/supportStore.ts](src/data/supportStore.ts) | 画面Eからの寄付・物品・ボランティアの集計（localStorage） |
+
+画面をまたぐ状態は store、画面固有の選択状態は各ページの `useState` に置きます。
+
+---
+
+## 技術構成
+
+- React 19 / TypeScript / Vite
+- react-router-dom（ルーティング）
+- Tailwind CSS v4 — 色とフォントは [src/index.css](src/index.css) の `@theme` に定義
+- lucide-react（アイコン）、recharts（グラフ）
+- oxlint
+
+実物の YOSS は紺系ですが、本プロトタイプは黄色系（`yoss-yellow`）で統一しています。
+
+```bash
+npm run build          # tsc -b && vite build
+```
+
+```bash
+npm run lint           # oxlint
+```
+
+```bash
+npx tsc -b --noEmit    # 型チェックだけ
+```
+
+`noUnusedLocals` が有効なので、使わない import は型エラーになります。
+
+---
+
+## プロトタイプとして実装していないこと
+
+意図的に外しているもの。判断の材料として明示しておきます。
+
+- **認証・権限**：ログインはありません。画面Dを見ている学校は
+  [schools.ts](src/data/schools.ts) の `currentSchool` に固定しています
+- **バックエンド・API**：永続化は localStorage のみ。ブラウザを変えると初期状態に戻ります
+- **決済**：画面Eの寄付は金額の表示と集計だけで、決済処理はありません
+- **複数年度・複数学期**：年度と学期は [meeting.ts](src/data/meeting.ts) の固定値です
+- **児童の実データ**：デモ用の架空データです
+
+---
+
+## 開発するとき
+
+コードを触る前に [CLAUDE.md](CLAUDE.md) を読んでください。
+過去の issue で議論して決めた設計判断と、踏みやすい落とし穴が書いてあります。特に：
+
+- 型を変えたら `organizationStore.migrate()` も直す（localStorage に旧形式が残っています）
+- ブランチ名は `feature/連番-スラッグ`。連番は issue 番号ではなく作業の通し番号
+- 経緯と決定理由は issue と PR に残す
