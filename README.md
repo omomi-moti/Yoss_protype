@@ -25,11 +25,6 @@ npm install
 npm run dev
 ```
 
-表示された URL をブラウザで開きます。5173 が埋まっていると別のポートに回るので、
-ポートはサーバーのログで確認してください。
-
-デモの前に、画面Aの「初期状態に戻す」を押してください。localStorage に前回の編集が残っていると
-シードの更新が反映されません。
 
 ## 画面
 
@@ -57,4 +52,3 @@ npm run build          # tsc -b && vite build
 npm run lint           # oxlint
 ```
 
-コードを触る前に [CLAUDE.md](CLAUDE.md) を読んでください。設計判断と落とし穴が書いてあります。
